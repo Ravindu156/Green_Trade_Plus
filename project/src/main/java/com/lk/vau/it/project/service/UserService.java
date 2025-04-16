@@ -64,7 +64,7 @@ public class UserService {
 
     public AuthResponseDto loginUser(LoginRequestDto loginRequest) {
         // Find user by username or phone number
-        User user = userRepository.findByUsername(loginRequest.getUsernameOrPhone())
+        User user = userRepository.findByUserName(loginRequest.getUsernameOrPhone())
                 .orElseGet(() -> userRepository.findByPhoneNumber(loginRequest.getUsernameOrPhone())
                         .orElseThrow(() -> new RuntimeException("Invalid username or phone number")));
 

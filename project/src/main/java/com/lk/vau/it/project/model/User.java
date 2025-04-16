@@ -15,13 +15,13 @@ public class User {
     private String role;
 
     @Column(nullable = false)
-    private String first_name;
+    private String firstName;
 
     @Column(nullable = false)
-    private String last_name;
+    private String lastName;
 
     @Column(nullable = false)
-    private String user_name;
+    private String userName;
     
     @Column(nullable = false, unique = true)
     private String email;
@@ -33,10 +33,10 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String address_line_one;
+    private String addressLineOne;
 
     @Column(nullable = false)
-    private String address_line_two;
+    private String addressLineTwo;
 
     @Column(nullable = false)
     private String province;
@@ -48,7 +48,7 @@ public class User {
     private String city;
 
     @Column(nullable = false, unique = true)
-    private String phone_number;
+    private String phoneNumber;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -85,27 +85,27 @@ public class User {
     }
     
     public String getFirstName() {
-        return first_name;
+        return firstName;
     }
     
-    public void setFirstName(String first_name) {
-        this.first_name = first_name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
-        return last_name;
+        return lastName;
     }
     
-    public void setLastName(String last_name) {
-        this.last_name = last_name;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getUserName() {
-        return user_name;
+        return userName;
     }
     
-    public void setUserName(String user_name) {
-        this.user_name = user_name;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
     
     public String getEmail() {
@@ -133,19 +133,19 @@ public class User {
     }
 
     public String getAddressLineOne() {
-        return address_line_one;
+        return addressLineOne;
     }
     
-    public void setAddressLineOne(String address_line_one) {
-        this.address_line_one = address_line_one;
+    public void setAddressLineOne(String addressLineOne) {
+        this.addressLineOne = addressLineOne;
     }
 
     public String getAddressLineTwo() {
-        return address_line_two;
+        return addressLineTwo;
     }
     
-    public void setAddressLineTwo(String address_line_two) {
-        this.address_line_two = address_line_two;
+    public void setAddressLineTwo(String addressLineTwo) {
+        this.addressLineTwo = addressLineTwo;
     }
 
     public String getProvince() {
@@ -173,11 +173,11 @@ public class User {
     }
 
     public String getPhoneNumber() {
-        return phone_number;
+        return phoneNumber;
     }
     
-    public void setPhoneNumber(String phone_number) {
-        this.phone_number = phone_number;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
     
     public LocalDateTime getCreatedAt() {
