@@ -18,9 +18,9 @@ public class JwtUtil {
     private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long jwtExpirationMs = 86400000; // 24 hours
     
-    public String generateToken(String email) {
+    public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, email);
+        return createToken(claims, username);
     }
     
     private String createToken(Map<String, Object> claims, String subject) {
@@ -58,8 +58,8 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
     
-    public Boolean validateToken(String token, String userEmail) {
-        final String email = extractEmail(token);
-        return (email.equals(userEmail) && !isTokenExpired(token));
+    public Boolean validateToken(String token, String username) {
+        final String user_name = extractEmail(token);
+        return (user_name.equals(username) && !isTokenExpired(token));
     }
 }

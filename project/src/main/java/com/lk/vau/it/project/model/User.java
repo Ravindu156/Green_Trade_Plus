@@ -47,7 +47,7 @@ public class User {
     @Column(nullable = false)
     private String city;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String phone_number;
     
     @Column(name = "created_at")
@@ -74,6 +74,14 @@ public class User {
     
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getRole() {
+        return role;
+    }
+    
+    public void setRole(String role) {
+        this.role = role;
     }
     
     public String getFirstName() {

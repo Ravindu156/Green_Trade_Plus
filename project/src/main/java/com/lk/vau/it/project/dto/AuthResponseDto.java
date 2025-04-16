@@ -1,19 +1,28 @@
 package com.lk.vau.it.project.dto;
 
 public class AuthResponseDto {
-
+    private Long id;
     private String token;
     private String userName;
     private String email;
     private String phoneNumber;
     private String role;
 
-    public AuthResponseDto(String token, String userName, String email, String phoneNumber, String role) {
+    public AuthResponseDto(Long id, String token, String userName, String email, String phoneNumber, String role) {
+        this.id = id;
         this.token = token;
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.role = role;
+    }
+
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getToken() {
