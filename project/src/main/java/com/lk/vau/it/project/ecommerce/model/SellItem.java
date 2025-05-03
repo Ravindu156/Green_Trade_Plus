@@ -1,7 +1,8 @@
 package com.lk.vau.it.project.ecommerce.model;
 
 import jakarta.persistence.Column;
-
+import jakarta.persistence.Entity;
+@Entity
 public class SellItem extends Item{
     private String seller_id;
     private int stock;
@@ -16,6 +17,7 @@ public class SellItem extends Item{
     public void setSeller_id(String seller_id) {
         this.seller_id = seller_id;
     }
+    
 
     public int getStock() {
         return stock;

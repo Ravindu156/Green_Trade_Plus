@@ -1,7 +1,8 @@
 package com.lk.vau.it.project.ecommerce.model;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-
+@Entity
 public class Seller {
     @Id
     private String seller_id;
@@ -10,7 +11,7 @@ public class Seller {
     private String seller_address;
     private String seller_email;
     private String seller_phoneNo;
-    
+
     public String getSeller_id() {
         return seller_id;
     }
