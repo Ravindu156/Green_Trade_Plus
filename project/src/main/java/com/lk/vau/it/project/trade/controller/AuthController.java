@@ -1,12 +1,12 @@
-package com.lk.vau.it.project.controller;
+package com.lk.vau.it.project.trade.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lk.vau.it.project.dto.AuthResponseDto;
-import com.lk.vau.it.project.dto.LoginRequestDto;
-import com.lk.vau.it.project.dto.UserRegistrationDto;
-import com.lk.vau.it.project.service.UserService;
+import com.lk.vau.it.project.trade.dto.AuthResponseDto;
+import com.lk.vau.it.project.trade.dto.LoginRequestDto;
+import com.lk.vau.it.project.trade.dto.UserRegistrationDto;
+import com.lk.vau.it.project.trade.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.lk.vau.it.project.exception;
+package com.lk.vau.it.project.trade.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

@@ -1,11 +1,11 @@
-package com.lk.vau.it.project.repository;
+package com.lk.vau.it.project.trade.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.lk.vau.it.project.model.User;
+import com.lk.vau.it.project.trade.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

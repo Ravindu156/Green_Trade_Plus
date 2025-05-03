@@ -1,4 +1,4 @@
-package com.lk.vau.it.project.dto;
+package com.lk.vau.it.project.trade.dto;
 
 public class AuthResponseDto {
     private Long id;

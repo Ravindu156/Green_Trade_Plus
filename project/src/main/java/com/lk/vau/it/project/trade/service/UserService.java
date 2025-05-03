@@ -1,16 +1,16 @@
-package com.lk.vau.it.project.service;
+package com.lk.vau.it.project.trade.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.lk.vau.it.project.dto.AuthResponseDto;
-import com.lk.vau.it.project.dto.LoginRequestDto;
-import com.lk.vau.it.project.dto.UserRegistrationDto;
-import com.lk.vau.it.project.exception.ResourceAlreadyExistsException;
-import com.lk.vau.it.project.model.User;
-import com.lk.vau.it.project.repository.UserRepository;
-import com.lk.vau.it.project.util.JwtUtil;
+import com.lk.vau.it.project.trade.dto.AuthResponseDto;
+import com.lk.vau.it.project.trade.dto.LoginRequestDto;
+import com.lk.vau.it.project.trade.dto.UserRegistrationDto;
+import com.lk.vau.it.project.trade.exception.ResourceAlreadyExistsException;
+import com.lk.vau.it.project.trade.model.User;
+import com.lk.vau.it.project.trade.repository.UserRepository;
+import com.lk.vau.it.project.trade.util.JwtUtil;
 
 @Service
 public class UserService {
