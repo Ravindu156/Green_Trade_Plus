@@ -26,6 +26,10 @@ public class UserService {
     public AuthResponseDto registerUser(UserRegistrationDto registrationDto) {
         // Check if user already exists
         if (userRepository.existsByPhoneNumber(registrationDto.getPhoneNumber())) {
+            throw new ResourceAlreadyExistsException("Phone Number is already in use");
+        }
+
+        if (userRepository.existsByEmail(registrationDto.getEmail())) {
             throw new ResourceAlreadyExistsException("Email is already in use");
         }
 
