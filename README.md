@@ -73,8 +73,11 @@ The DDEC plays a central role in vegetable distribution but suffers from multipl
 
 For inquiries or collaboration opportunities, please reach out to the project team or the supervisor.
 members
-W.L.L Karunathilaka
-C.H Hettiarachchi
-Ravindu Hirusanka
+
+1.W.L.L Karunathilaka
+
+2. C.H Hettiarachchi
+
+3.Ravindu Hirusanka
 ---
 
