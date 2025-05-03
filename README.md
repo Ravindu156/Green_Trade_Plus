@@ -76,8 +76,8 @@ members
 
 1.W.L.L Karunathilaka
 
-2. C.H Hettiarachchi
+2.C.H Hettiarachchi
 
 3.Ravindu Hirusanka
----
+
 
