@@ -1,6 +1,9 @@
 package com.lk.vau.it.project.ecommerce.model;
 
-public class order extends item {
+import jakarta.persistence.Entity;
+
+@Entity(name = "Orders")
+public class Order extends Item {
     private String order_id;
     private String buyer_name;
     private String buyer_NIC;

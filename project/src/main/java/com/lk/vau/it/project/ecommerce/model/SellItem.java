@@ -2,7 +2,7 @@ package com.lk.vau.it.project.ecommerce.model;
 
 import jakarta.persistence.Column;
 
-public class sell_item extends item{
+public class SellItem extends Item{
     private String seller_id;
     private int stock;
 
