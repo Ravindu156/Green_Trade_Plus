@@ -32,13 +32,13 @@ public class SellItemController {
     @PutMapping("/{id}")
     public SellItem update(@PathVariable Long id, @RequestBody SellItem updatedItem) {
         return repository.findById(id).map(item -> {
-            item.setItemName(updatedItem.getItem_Name());
+            item.setItem_name(updatedItem.getItem_name());
             item.setPrice(updatedItem.getPrice());
             item.setColor(updatedItem.getColor());
             item.setSize(updatedItem.getSize());
             item.setImage(updatedItem.getImage());
             item.setStock(updatedItem.getStock());
-            item.setSellerId(updatedItem.getSellerId());
+            item.setSeller_id(updatedItem.getSeller_id());
             item.setDescription(updatedItem.getDescription());
             return repository.save(item);
         }).orElseThrow(() -> new RuntimeException("SellItem not found with ID: " + id));

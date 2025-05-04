@@ -32,7 +32,7 @@ public class ItemController {
     @PutMapping("/{id}")
     public Item updateItem(@PathVariable Long id, @RequestBody Item updatedItem) {
         return itemRepository.findById(id).map(item -> {
-            item.setItem_name(updatedItem.getItem_Name());
+            item.setItem_name(updatedItem.getItem_name());
             item.setPrice(updatedItem.getPrice());
             item.setColor(updatedItem.getColor());
             item.setSize(updatedItem.getSize());

@@ -32,17 +32,17 @@ public class OrderController {
     @PutMapping("/{id}")
     public Order updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
         return orderRepository.findById(id).map(order -> {
-            order.setItemName(updatedOrder.getItem_Name());
+            order.setItem_name(updatedOrder.getItem_name());
             order.setPrice(updatedOrder.getPrice());
             order.setColor(updatedOrder.getColor());
             order.setSize(updatedOrder.getSize());
             order.setImage(updatedOrder.getImage());
-            order.setOrderId(updatedOrder.getOrder_Id());
-            order.setBuyerName(updatedOrder.getBuyer_Name());
-            order.setBuyerNIC(updatedOrder.getBuyer_NIC());
-            order.setBuyerAddress(updatedOrder.getBuyer_Address());
-            order.setBuyerEmail(updatedOrder.getBuyer_Email());
-            order.setBuyerPhoneNo(updatedOrder.getBuyer_PhoneNo());
+            order.setOrder_id(updatedOrder.getOrder_id());
+            order.setBuyer_name(updatedOrder.getBuyer_name());
+            order.setBuyer_NIC(updatedOrder.getBuyer_NIC());
+            order.setBuyer_address(updatedOrder.getBuyer_address());
+            order.setBuyer_email(updatedOrder.getBuyer_email());
+            order.setBuyer_phoneNo(updatedOrder.getBuyer_phoneNo());
             return orderRepository.save(order);
         }).orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
     }
