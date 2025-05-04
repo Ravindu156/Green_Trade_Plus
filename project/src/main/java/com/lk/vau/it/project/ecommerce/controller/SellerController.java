@@ -32,11 +32,11 @@ public class SellerController {
     @PutMapping("/{id}")
     public Seller updateSeller(@PathVariable String id, @RequestBody Seller updatedSeller) {
         return sellerRepository.findById(id).map(seller -> {
-            seller.setSellerName(updatedSeller.getSeller_Name());
-            seller.setSellerNIC(updatedSeller.getSeller_NIC());
-            seller.setSellerAddress(updatedSeller.getSeller_Address());
-            seller.setSellerEmail(updatedSeller.getSeller_Email());
-            seller.setSellerPhoneNo(updatedSeller.getSeller_PhoneNo());
+            seller.setSeller_name(updatedSeller.getSeller_name());
+            seller.setSeller_NIC(updatedSeller.getSeller_NIC());
+            seller.setSeller_address(updatedSeller.getSeller_address());
+            seller.setSeller_email(updatedSeller.getSeller_email());
+            seller.setSeller_phoneNo(updatedSeller.getSeller_phoneNo());
             return sellerRepository.save(seller);
         }).orElseThrow(() -> new RuntimeException("Seller not found with ID: " + id));
     }
