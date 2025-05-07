@@ -10,9 +10,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+
+
 
 const HomeScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
+    const navigation = useNavigation();
 
     return (
         <SafeAreaProvider>
@@ -20,12 +24,32 @@ const HomeScreen = () => {
                 <View style={[styles.container]}>
                     <Text style={[styles.title]}>My Tasks</Text>
 
-
                     <TouchableOpacity
-                        style={styles.fab}
+                        /* style={styles.fabs} */
                         onPress={() => setModalVisible(true)}
                     >
-                        <Ionicons name="add" size={30} color="white" />
+                        <Text>Today Market</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        /* style={styles.fab} */
+                        onPress={() => setModalVisible(true)}
+                    >
+                        <Text>Cources</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                       /*  style={styles.fab} */
+                        onPress={() => navigation.navigate('ProductsTabs')}
+                    >
+                        <Text>Products</Text>
+                    </TouchableOpacity>
+                    
+                     <TouchableOpacity
+                        /* style={styles.fab} */
+                        onPress={() => setModalVisible(true)}
+                    >
+                        <Text>Transpotation</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

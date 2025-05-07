@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../hooks/useAuth';
 import AuthStack from './AuthStack';
 import AppTabs from './AppTabs';
+import ProductsTabs from '../../ecommerce/navigation/ProductsTabs';
 
 const Stack = createStackNavigator();
 
@@ -17,9 +18,12 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown:false }}>
       {user ? (
-        <Stack.Screen name="App" component={AppTabs} />
+        <>
+          <Stack.Screen name="App" component={AppTabs} />
+          <Stack.Screen name="ProductsTabs" component={ProductsTabs} />
+        </>
       ) : (
-        <Stack.Screen name="Auth" component={AuthStack} />
+          <Stack.Screen name="Auth" component={AuthStack} />
       )}
     </Stack.Navigator>
   );
