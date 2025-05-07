@@ -41,7 +41,7 @@ public class UserService {
         user.setUserName(registrationDto.getUserName());
         user.setEmail(registrationDto.getEmail());
         user.setGender(registrationDto.getGender());
-        user.setPassword(registrationDto.getPassword());
+        user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         user.setAddressLineOne(registrationDto.getAddressLineOne());
         user.setAddressLineTwo(registrationDto.getAddressLineTwo());
         user.setProvince(registrationDto.getProvince());

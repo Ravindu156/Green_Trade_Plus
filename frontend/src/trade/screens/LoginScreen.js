@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
+  const [usernameOrPhone, setUsernameOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -30,14 +30,14 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!usernameOrPhone || !password) {
       showToast('error', 'Validation Error', 'Please fill in all fields');
       return;
     }
   
     setIsLoading(true);
   
-    const result = await login(email, password);
+    const result = await login(usernameOrPhone, password);
   
     if (result.success) {
       showToast('success', 'Success', 'Login successfully!');
@@ -62,10 +62,10 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.formContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
+          placeholder="Username or Phone number"
+          value={usernameOrPhone}
+          onChangeText={setUsernameOrPhone}
+          keyboardType="usernameorphone"
           autoCapitalize="none"
         />
 
