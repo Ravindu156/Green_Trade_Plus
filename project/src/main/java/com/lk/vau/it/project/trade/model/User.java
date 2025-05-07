@@ -1,70 +1,85 @@
 package com.lk.vau.it.project.trade.model;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.*;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
 public class User {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @Column(nullable = false)
-    private String role;
-
-    @Column(nullable = false)
+    private String role; // userType in frontend
+    
+    @Column(name = "first_name", nullable = false)
     private String firstName;
-
-    @Column(nullable = false)
+    
+    @Column(name = "last_name", nullable = false)
     private String lastName;
-
-    @Column(nullable = false)
+    
+    @Column(name = "user_name", nullable = false, unique = true)
     private String userName;
     
     @Column(nullable = false, unique = true)
     private String email;
-
+    
     @Column(nullable = false)
     private String gender;
     
     @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false)
+    
+    @Column(name = "address_line_one", nullable = false)
     private String addressLineOne;
-
-    @Column(nullable = false)
+    
+    @Column(name = "address_line_two")
     private String addressLineTwo;
-
+    
     @Column(nullable = false)
     private String province;
-
+    
     @Column(nullable = false)
     private String district;
-
+    
     @Column(nullable = false)
     private String city;
-
-    @Column(nullable = false, unique = true)
+    
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
     
-    @Column(name = "created_at")
+    @Column(name = "profile_photo_path")
+    private String profilePhotoPath;
+    
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+    
+    @Column(name = "account_active", nullable = false)
+    private boolean accountActive;
+    
+    // Pre-persist hook to set default values
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.accountActive = true;
     }
     
+    // Pre-update hook
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
     
     // Getters and Setters
@@ -75,7 +90,7 @@ public class User {
     public void setId(Long id) {
         this.id = id;
     }
-
+    
     public String getRole() {
         return role;
     }
@@ -91,7 +106,7 @@ public class User {
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
-
+    
     public String getLastName() {
         return lastName;
     }
@@ -99,7 +114,7 @@ public class User {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
-
+    
     public String getUserName() {
         return userName;
     }
@@ -115,7 +130,7 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
-
+    
     public String getGender() {
         return gender;
     }
@@ -131,7 +146,7 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
+    
     public String getAddressLineOne() {
         return addressLineOne;
     }
@@ -139,7 +154,7 @@ public class User {
     public void setAddressLineOne(String addressLineOne) {
         this.addressLineOne = addressLineOne;
     }
-
+    
     public String getAddressLineTwo() {
         return addressLineTwo;
     }
@@ -147,7 +162,7 @@ public class User {
     public void setAddressLineTwo(String addressLineTwo) {
         this.addressLineTwo = addressLineTwo;
     }
-
+    
     public String getProvince() {
         return province;
     }
@@ -155,7 +170,7 @@ public class User {
     public void setProvince(String province) {
         this.province = province;
     }
-
+    
     public String getDistrict() {
         return district;
     }
@@ -163,7 +178,7 @@ public class User {
     public void setDistrict(String district) {
         this.district = district;
     }
-
+    
     public String getCity() {
         return city;
     }
@@ -171,13 +186,21 @@ public class User {
     public void setCity(String city) {
         this.city = city;
     }
-
+    
     public String getPhoneNumber() {
         return phoneNumber;
     }
     
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+    
+    public String getProfilePhotoPath() {
+        return profilePhotoPath;
+    }
+    
+    public void setProfilePhotoPath(String profilePhotoPath) {
+        this.profilePhotoPath = profilePhotoPath;
     }
     
     public LocalDateTime getCreatedAt() {
@@ -194,5 +217,21 @@ public class User {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+    
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+    
+    public boolean isAccountActive() {
+        return accountActive;
+    }
+    
+    public void setAccountActive(boolean accountActive) {
+        this.accountActive = accountActive;
     }
 }
