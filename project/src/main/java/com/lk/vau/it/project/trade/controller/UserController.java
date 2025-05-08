@@ -1,6 +1,8 @@
 package com.lk.vau.it.project.trade.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import com.lk.vau.it.project.trade.exception.ResourceAlreadyExistsException;
 import com.lk.vau.it.project.trade.service.UserService;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +27,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    private static final String IMAGE_DIRECTORY = "C:/Users/ADMIN/Desktop/Green_Trade_Plus/profile-photos/";
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> registerUser(@ModelAttribute @Valid UserRegistrationDto registrationDto) {
@@ -59,4 +64,38 @@ public class UserController {
         return ResponseEntity.ok(info);
     }
 
+    @GetMapping("/profile-photos/{imageName}")
+    public ResponseEntity<Resource> getProfileImage(@PathVariable String imageName) {
+        try {
+            File file = new File(IMAGE_DIRECTORY + imageName);
+            if (file.exists()) {
+                Resource resource = new FileSystemResource(file);
+                String fileExtension = getFileExtension(imageName);
+                MediaType mediaType = MediaType.IMAGE_PNG;  // Default fallback
+
+                if ("jpg".equalsIgnoreCase(fileExtension) || "jpeg".equalsIgnoreCase(fileExtension)) {
+                    mediaType = MediaType.IMAGE_JPEG;
+                } else if ("gif".equalsIgnoreCase(fileExtension)) {
+                    mediaType = MediaType.IMAGE_GIF;
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(mediaType)
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Helper method to get the file extension
+    private String getFileExtension(String fileName) {
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            return fileName.substring(lastDotIndex + 1);
+        }
+        return "";
+    }
 }

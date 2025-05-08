@@ -166,7 +166,7 @@ public class UserService {
     public UserBasicInfoDto getUserBasicInfo(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return new UserBasicInfoDto(user.getUserName(), user.getProfilePhotoPath());
+        return new UserBasicInfoDto(user.getUserName(), user.getProfilePhotoPath(), user.getFirstName());
     }
 
 }

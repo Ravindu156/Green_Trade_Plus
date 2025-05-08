@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
 
 // Enhanced green color palette with better visibility
 const COLORS = {
@@ -27,12 +29,51 @@ const COLORS = {
 
 const HomeScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
+    const [firstName, setFirstName] = useState();
+    const [profilePhoto, setProfilePhoto] = useState();
     const navigation = useNavigation();
 
-    const userData = {
-        firstName: 'Alex',
-        profilePic: 'https://via.placeholder.com/150',
-    };
+
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            try {
+                const userData = await AsyncStorage.getItem('user');
+                const token = await AsyncStorage.getItem('token'); // or whatever key you store it under
+    
+                if (userData && token) {
+                    const user = JSON.parse(userData);
+                    const userId = user.id;
+    
+                    console.log("userid", userId);
+    
+                    const res = await fetch(`http://localhost:8080/api/auth/${userId}/basic-info`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`, // ✅ Add this header
+                        }
+                    });
+    
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+    
+                    const data = await res.json();
+                    setFirstName(data.firstName);
+                    setProfilePhoto(data.profilePhotoPath);
+    
+                    console.log("name", data.firstName); // also fix typo from "firsName"
+                    console.log("photo", data.profilePhotoPath); // also fix typo from "firsName"
+                }
+            } catch (err) {
+                console.error("Failed to fetch user info", err);
+            }
+        };
+    
+        fetchUserInfo();
+    }, []);
+    
+
 
     const menuItems = [
         {
@@ -78,19 +119,19 @@ const HomeScreen = () => {
             <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
             <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightBg }}>
                 <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                    
+
                     {/* Header */}
                     <View style={styles.header}>
                         <View>
                             <Text style={styles.greeting}>Welcome,</Text>
-                            <Text style={styles.userName}>{userData.firstName}</Text>
+                            <Text style={styles.userName}>{firstName}</Text>
                         </View>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.profileContainer}
                             onPress={() => navigation.navigate('Profile')}
                         >
-                            <Image 
-                                source={{ uri: userData.profilePic }} 
+                            <Image
+                               source={{ uri: `http://localhost:8080/api/auth/profile-photos/${profilePhoto}` }}
                                 style={styles.profilePic}
                             />
                         </TouchableOpacity>

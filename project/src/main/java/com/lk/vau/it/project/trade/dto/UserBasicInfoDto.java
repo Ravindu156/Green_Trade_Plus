@@ -2,11 +2,13 @@ package com.lk.vau.it.project.trade.dto;
 
 public class UserBasicInfoDto {
     private String userName;
-    private String profilePhotoPath;
+    private String profile_photo_path;
+    private String firstName;
     
-    public UserBasicInfoDto(String userName, String profilePhotoPath) {
+    public UserBasicInfoDto(String userName, String profile_photo_path, String firstName) {
         this.userName = userName;
-        this.profilePhotoPath = profilePhotoPath;
+        this.profile_photo_path = profile_photo_path;
+        this.firstName = firstName;
     }
 
     public String getUserName() {
@@ -18,11 +20,18 @@ public class UserBasicInfoDto {
     }
 
     public String getProfilePhotoPath() {
-        return profilePhotoPath;
+        return profile_photo_path;
     }
 
-    public void setProfilePhotoPath(String profilePhotoPath) {
-        this.profilePhotoPath = profilePhotoPath;
+    public void setProfilePhotoPath(String profile_photo_path) {
+        this.profile_photo_path = profile_photo_path;
+    }
+
+    public String getFirstName() {
+        return firstName;
     }
     
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 }
