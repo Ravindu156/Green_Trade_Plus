@@ -24,7 +24,7 @@ const UserTypeScreen = ({ formData, updateFormData, goToNextStep, errors }) => {
   ];
 
   const selectUserType = (type) => {
-    updateFormData({ userType: type });
+    updateFormData({ role: type });
   };
 
   return (
@@ -38,18 +38,18 @@ const UserTypeScreen = ({ formData, updateFormData, goToNextStep, errors }) => {
             key={type.id}
             style={[
               styles.userTypeCard,
-              formData.userType === type.id && styles.selectedCard
+              formData.role === type.id && styles.selectedCard
             ]}
             onPress={() => selectUserType(type.id)}
           >
             <Image source={type.icon} style={styles.userTypeIcon} />
             <Text style={[
               styles.userTypeLabel,
-              formData.userType === type.id && styles.selectedLabel
+              formData.role === type.id && styles.selectedLabel
             ]}>
               {type.label}
             </Text>
-            {formData.userType === type.id && (
+            {formData.role === type.id && (
               <View style={styles.checkmarkContainer}>
                 <AntDesign name="checkcircle" size={20} color={COLORS.primary} />
               </View>
@@ -65,10 +65,10 @@ const UserTypeScreen = ({ formData, updateFormData, goToNextStep, errors }) => {
       <TouchableOpacity 
         style={[
           styles.nextButton,
-          formData.userType ? styles.nextButtonActive : styles.nextButtonInactive
+          formData.role ? styles.nextButtonActive : styles.nextButtonInactive
         ]} 
         onPress={goToNextStep}
-        disabled={!formData.userType}
+        disabled={!formData.role}
       >
         <AntDesign name="arrowright" size={24} color="white" />
       </TouchableOpacity>

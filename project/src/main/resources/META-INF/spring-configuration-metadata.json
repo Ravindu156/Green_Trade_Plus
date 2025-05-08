@@ -1,0 +1,14 @@
+{
+    "properties": [
+      {
+        "name": "app.profile.photo.upload.dir",
+        "type": "java.lang.String",
+        "description": "Directory path where profile photos will be stored."
+      },
+      {
+        "name": "app.profile.photo.max.size",
+        "type": "java.lang.Long",
+        "description": "Maximum allowed size for profile photo files in bytes."
+      }
+    ]
+  }

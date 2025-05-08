@@ -170,18 +170,18 @@ const AddressScreen = ({
           <FormInput
             label="Address Line 1"
             placeholder="Enter your street address"
-            value={formData.addressLine1}
-            onChangeText={(text) => handleInputChange('addressLine1', text)}
-            error={errors.addressLine1}
+            value={formData.addressLineOne}
+            onChangeText={(text) => handleInputChange('addressLineOne', text)}
+            error={errors.addressLineOne}
             leftIcon={<Ionicons name="location-outline" size={20} color={COLORS.textSecondary} />}
           />
           
           <FormInput
             label="Address Line 2 (Optional)"
             placeholder="Apartment, suite, unit, etc."
-            value={formData.addressLine2}
-            onChangeText={(text) => handleInputChange('addressLine2', text)}
-            error={errors.addressLine2}
+            value={formData.addressLineTwo}
+            onChangeText={(text) => handleInputChange('addressLineTwo', text)}
+            error={errors.addressLineTwo}
           />
           
           <Dropdown

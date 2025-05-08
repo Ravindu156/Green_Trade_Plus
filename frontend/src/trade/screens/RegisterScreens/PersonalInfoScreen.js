@@ -91,9 +91,9 @@ const PersonalInfoScreen = ({
           <FormInput
             label="Username"
             placeholder="Create a username"
-            value={formData.username}
-            onChangeText={(text) => handleInputChange('username', text)}
-            error={errors.username}
+            value={formData.userName}
+            onChangeText={(text) => handleInputChange('userName', text)}
+            error={errors.userName}
             leftIcon={<MaterialIcons name="alternate-email" size={20} color={COLORS.textSecondary} />}
             autoCapitalize="none"
           />

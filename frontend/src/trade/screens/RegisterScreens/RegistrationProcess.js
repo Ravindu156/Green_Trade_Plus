@@ -19,16 +19,16 @@ const RegistrationProcess = ({ navigation }) => {
   // States for all form data
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    userType: '',
+    role: '',
     firstName: '',
     lastName: '',
-    username: '',
+    userName: '',
     email: '',
     gender: '',
     password: '',
     confirmPassword: '',
-    addressLine1: '',
-    addressLine2: '',
+    addressLineOne: '',
+    addressLineTwo: '',
     province: '',
     district: '',
     city: '',
@@ -77,7 +77,7 @@ const RegistrationProcess = ({ navigation }) => {
 
     switch (currentStep) {
       case 1: // UserType validation
-        if (!formData.userType) {
+        if (!formData.role) {
           stepErrors.userType = 'Please select a user type';
           isValid = false;
         }
@@ -92,11 +92,11 @@ const RegistrationProcess = ({ navigation }) => {
           stepErrors.lastName = 'Last name is required';
           isValid = false;
         }
-        if (!formData.username) {
-          stepErrors.username = 'Username is required';
+        if (!formData.userName) {
+          stepErrors.userName = 'Username is required';
           isValid = false;
-        } else if (formData.username.length < 4) {
-          stepErrors.username = 'Username must be at least 4 characters';
+        } else if (formData.userName.length < 4) {
+          stepErrors.userName = 'Username must be at least 4 characters';
           isValid = false;
         }
         if (!formData.gender) {
@@ -117,8 +117,8 @@ const RegistrationProcess = ({ navigation }) => {
         break;
       
       case 3: // Address validation
-        if (!formData.addressLine1) {
-          stepErrors.addressLine1 = 'Address Line 1 is required';
+        if (!formData.addressLineOne) {
+          stepErrors.addressLineOne = 'Address Line 1 is required';
           isValid = false;
         }
         if (!formData.province) {
@@ -155,53 +155,70 @@ const RegistrationProcess = ({ navigation }) => {
   };
 
   // Handle final submission
-  const handleSubmit = async () => {
-    if (!validateCurrentStep()) {
+const handleSubmit = async () => {
+  if (!validateCurrentStep()) {
+    return;
+  }
+
+  try {
+    // Show loading indication
+    showToast('info', 'Processing', 'Creating your account...');
+    
+    // Create form data for image upload
+    const submitData = new FormData();
+    
+    // Add all form fields
+    Object.keys(formData).forEach(key => {
+      if (key === 'profilePhoto' && formData[key]) {
+        // Format the file correctly for React Native
+        submitData.append('profilePhoto', {
+          uri: formData.profilePhoto.uri,
+          type: formData.profilePhoto.type || 'image/jpeg',
+          name: formData.profilePhoto.fileName || 'photo.jpg'
+        });
+      } else {
+        // Convert booleans to strings
+        const value = typeof formData[key] === 'boolean' ? 
+          formData[key].toString() : 
+          formData[key];
+        submitData.append(key, value);
+      }
+    });
+
+    console.log('Submitting data:', JSON.stringify(Array.from(submitData.entries())));
+
+    // Make API call - don't manually set Content-Type header
+    const response = await fetch('http://192.168.8.168:8080/api/auth/register', {
+      method: 'POST',
+      body: submitData,
+      // Let fetch set the boundary parameter for multipart/form-data automatically
+    });
+
+    // Log the response for debugging
+    console.log('Response status:', response.status);
+    const responseText = await response.text();
+    console.log('Response text:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Error parsing response:', e);
+      showToast('error', 'Response Error', 'Invalid response from server');
       return;
     }
 
-    try {
-      // Show loading indication
-      showToast('info', 'Processing', 'Creating your account...');
-      
-      // Create form data for image upload
-      const submitData = new FormData();
-      
-      // Add all form fields
-      Object.keys(formData).forEach(key => {
-        if (key === 'profilePhoto' && formData[key]) {
-          submitData.append('profilePhoto', {
-            uri: formData.profilePhoto.uri,
-            type: formData.profilePhoto.type,
-            name: formData.profilePhoto.fileName || 'photo.jpg'
-          });
-        } else {
-          submitData.append(key, formData[key]);
-        }
-      });
-
-      // Make API call
-      const response = await fetch('http://192.168.1.100:8080/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        body: submitData,
-      });
-
-      const data = await response.json();
-
-      if (response.status === 201) {
-        showToast('success', 'Success', 'Account created successfully!');
-        setCurrentStep(5); // Go to success screen
-      } else {
-        showToast('error', 'Registration Failed', data.message || 'Something went wrong');
-      }
-    } catch (error) {
-      console.error('Registration Error:', error);
-      showToast('error', 'Network Error', 'Failed to connect to server');
+    if (response.status === 201) {
+      showToast('success', 'Success', 'Account created successfully!');
+      setCurrentStep(5); // Go to success screen
+    } else {
+      showToast('error', 'Registration Failed', data.message || 'Something went wrong');
     }
-  };
+  } catch (error) {
+    console.error('Registration Error:', error);
+    showToast('error', 'Network Error', 'Failed to connect to server');
+  }
+};
 
   // Render the current step
   const renderStep = () => {
