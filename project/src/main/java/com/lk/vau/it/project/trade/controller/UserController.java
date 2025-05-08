@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.lk.vau.it.project.trade.dto.AuthResponseDto;
 import com.lk.vau.it.project.trade.dto.LoginRequestDto;
+import com.lk.vau.it.project.trade.dto.UserBasicInfoDto;
 import com.lk.vau.it.project.trade.dto.UserRegistrationDto;
 import com.lk.vau.it.project.trade.exception.ResourceAlreadyExistsException;
 import com.lk.vau.it.project.trade.service.UserService;
@@ -51,4 +52,11 @@ public class UserController {
             return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @GetMapping("/{userId}/basic-info")
+    public ResponseEntity<UserBasicInfoDto> getUserBasicInfo(@PathVariable Long userId) {
+        UserBasicInfoDto info = userService.getUserBasicInfo(userId);
+        return ResponseEntity.ok(info);
+    }
+
 }

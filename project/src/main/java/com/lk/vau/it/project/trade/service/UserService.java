@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.lk.vau.it.project.trade.dto.AuthResponseDto;
 import com.lk.vau.it.project.trade.dto.LoginRequestDto;
+import com.lk.vau.it.project.trade.dto.UserBasicInfoDto;
 import com.lk.vau.it.project.trade.dto.UserRegistrationDto;
 import com.lk.vau.it.project.trade.exception.ResourceAlreadyExistsException;
 import com.lk.vau.it.project.trade.model.User;
@@ -32,7 +33,7 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
-    
+
     @Value("${app.profile.photo.upload.dir:profile-photos}")
     private String uploadDir;
 
@@ -45,7 +46,7 @@ public class UserService {
         if (userRepository.existsByEmail(registrationDto.getEmail())) {
             throw new ResourceAlreadyExistsException("Email is already in use");
         }
-        
+
         if (userRepository.existsByUserName(registrationDto.getUserName())) {
             throw new ResourceAlreadyExistsException("Username is already in use");
         }
@@ -65,7 +66,7 @@ public class UserService {
         user.setDistrict(registrationDto.getDistrict());
         user.setCity(registrationDto.getCity());
         user.setPhoneNumber(registrationDto.getPhoneNumber());
-        
+
         // Handle profile photo upload if provided
         if (registrationDto.getProfilePhoto() != null && !registrationDto.getProfilePhoto().isEmpty()) {
             String photoPath = saveProfilePhoto(registrationDto.getProfilePhoto(), registrationDto.getUserName());
@@ -85,8 +86,7 @@ public class UserService {
                 savedUser.getUserName(),
                 savedUser.getEmail(),
                 savedUser.getPhoneNumber(),
-                savedUser.getRole()
-        );
+                savedUser.getRole());
     }
 
     public AuthResponseDto loginUser(LoginRequestDto loginRequest) {
@@ -114,14 +114,13 @@ public class UserService {
                 user.getUserName(),
                 user.getEmail(),
                 user.getPhoneNumber(),
-                user.getRole()
-        );
+                user.getRole());
     }
-    
+
     /**
      * Saves the profile photo to the file system and returns the file path
      * 
-     * @param file The profile photo file
+     * @param file     The profile photo file
      * @param username The username to use as part of the file name
      * @return The relative path to the saved file
      */
@@ -132,21 +131,21 @@ public class UserService {
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
-            
+
             // Generate unique file name to prevent duplicates
             String fileExtension = getFileExtension(file.getOriginalFilename());
             String fileName = username + "-" + UUID.randomUUID().toString() + fileExtension;
-            
+
             // Save the file
             Path filePath = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            
+
             return fileName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store profile photo", e);
         }
     }
-    
+
     /**
      * Extracts the file extension from the original file name
      * 
@@ -163,4 +162,11 @@ public class UserService {
         }
         return fileName.substring(dotIndex);
     }
+
+    public UserBasicInfoDto getUserBasicInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return new UserBasicInfoDto(user.getUserName(), user.getProfilePhotoPath());
+    }
+
 }
