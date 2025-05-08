@@ -39,6 +39,8 @@ const RegistrationProcess = ({ navigation }) => {
 
   // State for validation errors
   const [errors, setErrors] = useState({});
+  // State for submission status
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Function to update form data
   const updateFormData = (data) => {
@@ -155,70 +157,108 @@ const RegistrationProcess = ({ navigation }) => {
   };
 
   // Handle final submission
-const handleSubmit = async () => {
-  if (!validateCurrentStep()) {
-    return;
-  }
-
-  try {
-    // Show loading indication
-    showToast('info', 'Processing', 'Creating your account...');
-    
-    // Create form data for image upload
-    const submitData = new FormData();
-    
-    // Add all form fields
-    Object.keys(formData).forEach(key => {
-      if (key === 'profilePhoto' && formData[key]) {
-        // Format the file correctly for React Native
-        submitData.append('profilePhoto', {
-          uri: formData.profilePhoto.uri,
-          type: formData.profilePhoto.type || 'image/jpeg',
-          name: formData.profilePhoto.fileName || 'photo.jpg'
-        });
-      } else {
-        // Convert booleans to strings
-        const value = typeof formData[key] === 'boolean' ? 
-          formData[key].toString() : 
-          formData[key];
-        submitData.append(key, value);
-      }
-    });
-
-    console.log('Submitting data:', JSON.stringify(Array.from(submitData.entries())));
-
-    // Make API call - don't manually set Content-Type header
-    const response = await fetch('http://192.168.8.168:8080/api/auth/register', {
-      method: 'POST',
-      body: submitData,
-      // Let fetch set the boundary parameter for multipart/form-data automatically
-    });
-
-    // Log the response for debugging
-    console.log('Response status:', response.status);
-    const responseText = await response.text();
-    console.log('Response text:', responseText);
-    
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error('Error parsing response:', e);
-      showToast('error', 'Response Error', 'Invalid response from server');
+  const handleSubmit = async () => {
+    if (!validateCurrentStep()) {
       return;
     }
-
-    if (response.status === 201) {
-      showToast('success', 'Success', 'Account created successfully!');
-      setCurrentStep(5); // Go to success screen
-    } else {
-      showToast('error', 'Registration Failed', data.message || 'Something went wrong');
+  
+    if (isSubmitting) {
+      return;
     }
-  } catch (error) {
-    console.error('Registration Error:', error);
-    showToast('error', 'Network Error', 'Failed to connect to server');
-  }
-};
+  
+    setIsSubmitting(true);
+  
+    try {
+      showToast('info', 'Processing', 'Creating your account...');
+  
+      const submitData = new FormData();
+  
+      for (const key in formData) {
+        if (formData.hasOwnProperty(key)) {
+          console.log("KEYS", key);
+  
+          if (key === 'profilePhoto' && formData[key]) {
+            const photo = formData[key];
+            console.log("PHOTO", photo);
+  
+            const fileUri = photo.uri;
+            const fileType = photo.mimeType || 'image/jpeg';
+            const fileName = photo.fileName || 'profilePhoto.jpg';
+  
+            // Check if the URI is a data URL (base64)
+            if (fileUri.startsWith('data:')) {
+              const base64String = fileUri.split(',')[1];
+              const byteCharacters = atob(base64String);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: fileType });
+              submitData.append('profilePhoto', blob, fileName); // Append Blob with filename
+              console.log("Appended Blob for profilePhoto");
+            } else {
+              // If the URI is a file path (common in React Native), fetch it as a Blob
+              try {
+                const response = await fetch(fileUri);
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const blob = await response.blob();
+                submitData.append('profilePhoto', blob, fileName);
+                console.log("Appended Blob from URI for profilePhoto");
+              } catch (error) {
+                console.error("Error fetching image:", error);
+                showToast('error', 'Upload Error', 'Failed to upload profile photo.');
+                setIsSubmitting(false);
+                return; // Exit handleSubmit on fetch error
+              }
+            }
+          } else {
+            const value = typeof formData[key] === 'boolean'
+              ? formData[key].toString()
+              : formData[key];
+            submitData.append(key, value);
+          }
+        }
+      }
+  
+      // Debug log: Use for development only
+      console.log('Submitting data:', JSON.stringify(Array.from(submitData.entries())));
+  
+      const response = await fetch('http://192.168.8.162:8080/api/auth/register', {
+        method: 'POST',
+        body: submitData,
+        // Note: Do NOT set Content-Type here, let FormData handle it
+      });
+  
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+  
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error parsing response:', e);
+        showToast('error', 'Response Error', 'Invalid response from server');
+        setIsSubmitting(false);
+        return;
+      }
+  
+      if (response.status === 201) {
+        showToast('success', 'Success', 'Account created successfully!');
+        setCurrentStep(5);
+      } else {
+        showToast('error', 'Registration Failed', data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      console.error('Registration Error:', error);
+      showToast('error', 'Network Error', 'Failed to connect to server');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Render the current step
   const renderStep = () => {
@@ -257,7 +297,7 @@ const handleSubmit = async () => {
           <ProfilePhotoScreen 
             formData={formData} 
             updateFormData={updateFormData}
-            handleSubmit={handleSubmit}
+            handleSubmit={handleSubmit} // Pass handleSubmit function
             goToPreviousStep={goToPreviousStep}
             errors={errors}
           />

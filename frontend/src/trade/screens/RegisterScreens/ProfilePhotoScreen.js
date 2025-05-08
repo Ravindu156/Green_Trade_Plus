@@ -1,6 +1,6 @@
 // ProfilePhotoScreen.js - Fourth step of registration
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -9,7 +9,8 @@ import {
   Image,
   ScrollView,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { AntDesign, Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -20,11 +21,11 @@ const ProfilePhotoScreen = ({
   formData, 
   updateFormData, 
   goToPreviousStep,
-  errors,
-  validateCurrentStep = () => true, // Default implementation if not provided
-  showToast = (type, title, message) => console.log(type, title, message), // Default implementation
-  setCurrentStep = () => {} // Default implementation
+  handleSubmit, // This should be passed from RegistrationProcess.js
+  errors
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const pickImage = async () => {
     // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -80,103 +81,35 @@ const ProfilePhotoScreen = ({
     updateFormData({ acceptedTerms: !formData.acceptedTerms });
   };
 
-  const handleSubmit = async () => {
-    // Check if validateCurrentStep exists and call it, default to true if not provided
-    if (typeof validateCurrentStep === 'function' && !validateCurrentStep()) {
+  // Create a wrapper function for handleSubmit to show loading state
+  const onSubmit = async () => {
+    if (!formData.acceptedTerms) {
+      Alert.alert(
+        'Terms Required',
+        'Please accept the terms and conditions to proceed',
+        [{ text: 'OK' }]
+      );
       return;
     }
 
+    // Set loading state
+    setIsSubmitting(true);
+    
     try {
-      // Show loading indication (if showToast is available)
-      if (typeof showToast === 'function') {
-        showToast('info', 'Processing', 'Creating your account...');
-      } else {
-        console.log('Processing', 'Creating your account...');
-      }
+      // Call the handleSubmit function from props
+      await handleSubmit();
       
-      // Create form data for image upload
-      const submitData = new FormData();
-      
-      // Add all form fields EXCEPT profilePhoto
-      Object.keys(formData).forEach(key => {
-        if (key !== 'profilePhoto') {
-          // Convert booleans to strings
-          if (typeof formData[key] === 'boolean') {
-            submitData.append(key, formData[key].toString());
-          } else if (formData[key] !== null && formData[key] !== undefined) {
-            submitData.append(key, formData[key]);
-          }
-        }
-      });
-      
-      // Now handle the profile photo separately - from Expo ImagePicker
-      if (formData.profilePhoto && formData.profilePhoto.uri) {
-        // Get the file name from URI
-        const uriParts = formData.profilePhoto.uri.split('/');
-        const fileName = uriParts[uriParts.length - 1];
-        
-        // Determine the MIME type
-        const fileType = formData.profilePhoto.type || 'image/jpeg';
-        
-        // This is the critical part - format the file data correctly for Spring Boot
-        submitData.append('profilePhoto', {
-          uri: formData.profilePhoto.uri,
-          type: fileType,
-          name: fileName
-        });
-        
-        console.log('Adding photo with URI:', formData.profilePhoto.uri);
-        console.log('Photo type:', fileType);
-        console.log('Photo name:', fileName);
-      }
-      
-      console.log('Submitting registration data...');
-      
-      // For debugging - log the API URL
-      const API_URL = 'http://192.168.8.162:8080/api/auth/register';
-      console.log('Submitting to:', API_URL);
-      
-      // Make API call - DON'T set Content-Type header manually
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        body: submitData,
-      });
-
-      // Log the response for debugging
-      console.log('Response status:', response.status);
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-      
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Error parsing response:', e);
-        if (typeof showToast === 'function') {
-          showToast('error', 'Response Error', 'Invalid response from server');
-        }
-        return;
-      }
-
-      if (response.status === 201) {
-        if (typeof showToast === 'function') {
-          showToast('success', 'Success', 'Account created successfully!');
-        }
-        if (typeof setCurrentStep === 'function') {
-          setCurrentStep(5); // Go to success screen
-        }
-      } else {
-        if (typeof showToast === 'function') {
-          showToast('error', 'Registration Failed', data.message || 'Something went wrong');
-        } else {
-          console.error('Registration Failed', data.message || 'Something went wrong');
-        }
-      }
+      // If we reach here without errors, the submission was successful
+      // The parent component (RegistrationProcess) should handle navigation to success screen
     } catch (error) {
-      console.error('Registration Error:', error);
-      if (typeof showToast === 'function') {
-        showToast('error', 'Network Error', 'Failed to connect to server');
-      }
+      console.error('Submission error:', error);
+      Alert.alert(
+        'Registration Error',
+        'There was a problem processing your registration. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -189,6 +122,7 @@ const ProfilePhotoScreen = ({
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={goToPreviousStep}
+          disabled={isSubmitting}
         >
           <AntDesign name="arrowleft" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -215,6 +149,7 @@ const ProfilePhotoScreen = ({
           <TouchableOpacity 
             style={styles.photoButton} 
             onPress={takePhoto}
+            disabled={isSubmitting}
           >
             <Ionicons name="camera" size={22} color={COLORS.primary} />
             <Text style={styles.photoButtonText}>Take Photo</Text>
@@ -223,6 +158,7 @@ const ProfilePhotoScreen = ({
           <TouchableOpacity 
             style={styles.photoButton} 
             onPress={pickImage}
+            disabled={isSubmitting}
           >
             <MaterialIcons name="photo-library" size={22} color={COLORS.primary} />
             <Text style={styles.photoButtonText}>Gallery</Text>
@@ -234,7 +170,7 @@ const ProfilePhotoScreen = ({
         <Text style={styles.userInfoLabel}>Your Username</Text>
         <View style={styles.userInfoValue}>
           <MaterialIcons name="alternate-email" size={20} color={COLORS.primary} />
-          <Text style={styles.userInfoText}>{formData.username}</Text>
+          <Text style={styles.userInfoText}>{formData.userName}</Text>
         </View>
         
         <Text style={styles.userInfoLabel}>Your Phone Number</Text>
@@ -249,6 +185,7 @@ const ProfilePhotoScreen = ({
           checked={formData.acceptedTerms}
           onToggle={toggleTermsAgreement}
           label="I have read and confirm the policies, terms, and conditions, and I declare that the above details are true and accurate to the best of my knowledge."
+          disabled={isSubmitting}
         />
         {errors.acceptedTerms && (
           <Text style={styles.errorText}>{errors.acceptedTerms}</Text>
@@ -258,13 +195,19 @@ const ProfilePhotoScreen = ({
       <TouchableOpacity 
         style={[
           styles.registerButton,
-          !formData.acceptedTerms && styles.disabledButton
+          (!formData.acceptedTerms || isSubmitting) && styles.disabledButton
         ]}
-        onPress={handleSubmit}
-        disabled={!formData.acceptedTerms}
+        onPress={onSubmit}
+        disabled={!formData.acceptedTerms || isSubmitting}
       >
-        <Text style={styles.registerButtonText}>Confirm and Proceed</Text>
-        <AntDesign name="checkcircle" size={20} color="white" />
+        {isSubmitting ? (
+          <ActivityIndicator color="white" size="small" />
+        ) : (
+          <>
+            <Text style={styles.registerButtonText}>Confirm and Proceed</Text>
+            <AntDesign name="checkcircle" size={20} color="white" />
+          </>
+        )}
       </TouchableOpacity>
       
       <View style={styles.spacer} />

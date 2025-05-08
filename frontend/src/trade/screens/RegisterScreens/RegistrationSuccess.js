@@ -1,6 +1,6 @@
 // RegistrationSuccess.js - Final screen after successful registration
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -15,6 +15,7 @@ import LottieView from 'lottie-react-native';
 
 const RegistrationSuccess = ({ formData, navigation }) => {
   const scaleAnim = new Animated.Value(0);
+  const lottieRef = useRef(null);
   
   useEffect(() => {
     // Animation when component mounts
@@ -24,6 +25,14 @@ const RegistrationSuccess = ({ formData, navigation }) => {
       tension: 40,
       useNativeDriver: true
     }).start();
+    
+    // Set a timer to automatically redirect to login after 5 seconds
+    const redirectTimer = setTimeout(() => {
+      navigateToLogin();
+    }, 5000);
+    
+    // Clean up the timer if component unmounts
+    return () => clearTimeout(redirectTimer);
   }, []);
 
   const navigateToLogin = () => {
@@ -44,6 +53,7 @@ const RegistrationSuccess = ({ formData, navigation }) => {
         <View style={styles.successIconContainer}>
           {/* Replace with your actual animation file path */}
           <LottieView
+            ref={lottieRef}
             source={require('../../../../assets/animations/complete.gif')} 
             autoPlay
             loop={false}
@@ -59,19 +69,23 @@ const RegistrationSuccess = ({ formData, navigation }) => {
         <View style={styles.userInfoContainer}>
           <View style={styles.userInfoRow}>
             <Text style={styles.userInfoLabel}>Username:</Text>
-            <Text style={styles.userInfoValue}>{formData.username}</Text>
+            <Text style={styles.userInfoValue}>{formData.userName}</Text>
           </View>
           
           <View style={styles.userInfoRow}>
             <Text style={styles.userInfoLabel}>Account Type:</Text>
             <Text style={styles.userInfoValue}>
-              {formData.userType === 'farmer' && 'Farmer'}
-              {formData.userType === 'buyer' && 'Buyer'}
-              {formData.userType === 'tutor' && 'Tutor'}
-              {formData.userType === 'seller' && 'Seller'}
+              {formData.role === 'farmer' && 'Farmer'}
+              {formData.role === 'buyer' && 'Buyer'}
+              {formData.role === 'tutor' && 'Tutor'}
+              {formData.role === 'seller' && 'Seller'}
             </Text>
           </View>
         </View>
+        
+        <Text style={styles.redirectText}>
+          Redirecting to login screen automatically...
+        </Text>
         
         <TouchableOpacity 
           style={styles.loginButton}
@@ -132,7 +146,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 10,
     padding: 15,
-    marginBottom: 30,
+    marginBottom: 15,
   },
   userInfoRow: {
     flexDirection: 'row',
@@ -150,6 +164,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.textPrimary,
     fontWeight: '600',
+  },
+  redirectText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: 15,
+    textAlign: 'center',
   },
   loginButton: {
     backgroundColor: COLORS.primary,
