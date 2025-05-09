@@ -16,11 +16,12 @@ const RootNavigator = () => {
   }
   
   return (
-    <Stack.Navigator screenOptions={{ headerShown:false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
         <>
           <Stack.Screen name="App" component={AppTabs} />
           <Stack.Screen name="ProductsTabs" component={ProductsTabs} />
+          {/* Remove TodayMarketScreen from here since it's now in the HomeStack */}
         </>
       ) : (
           <Stack.Screen name="Auth" component={AuthStack} />

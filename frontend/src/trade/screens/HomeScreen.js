@@ -81,7 +81,7 @@ const HomeScreen = () => {
             title: 'Today Market',
             icon: 'basket-outline',
             color: ['#43A047', '#66BB6A'],
-            screen: 'MarketScreen'
+            screen: 'TodayMarketScreen'
         },
         {
             id: 'courses',
@@ -108,6 +108,10 @@ const HomeScreen = () => {
 
     const navigateTo = (screenName) => {
         if (screenName === 'ProductsTabs') {
+            // Navigate to the stack screen (outside of the tab navigation)
+            navigation.navigate(screenName);
+        } else if (screenName === 'TodayMarketScreen') {
+            // Navigate within the HomeStack
             navigation.navigate(screenName);
         } else {
             setModalVisible(true);
