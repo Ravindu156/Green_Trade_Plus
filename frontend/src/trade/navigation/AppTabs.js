@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import FarmerProfileScreen from '../screens/FarmerProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TodayMarketScreen from '../screens/TodayMarketScreen';
+// import YourListingsScreen from '../screens/YourListingsScreen';
+// import AddNewItemScreen from '../screens/AddNewItemScreen';
+// import YourClassesScreen from '../screens/YourClassesScreen';
+// import EarningsScreen from '../screens/EarningsScreen';
 import { COLORS } from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator();
+const ProfileStack = createStackNavigator();
 
 // Create a stack navigator for the Home tab to include TodayMarketScreen
 const HomeStackScreen = () => {
@@ -20,6 +27,55 @@ const HomeStackScreen = () => {
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="TodayMarketScreen" component={TodayMarketScreen} />
     </HomeStack.Navigator>
+  );
+};
+
+// Create a stack navigator for the Profile tab to include farmer-specific screens
+const ProfileStackScreen = () => {
+  const [userRole, setUserRole] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch user role from AsyncStorage
+    const getUserRole = async () => {
+      try {
+        const role = await AsyncStorage.getItem('userRole');
+        setUserRole(role);
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getUserRole();
+  }, []);
+
+  if (isLoading) {
+    // You could return a loading component here if needed
+    return (
+      <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+        <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      </ProfileStack.Navigator>
+    );
+  }
+
+  // Use FarmerProfileScreen if user role is "farmer", otherwise use regular ProfileScreen
+  return (
+    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+      {userRole === 'farmer' ? (
+        <>
+          <ProfileStack.Screen name="ProfileMain" component={FarmerProfileScreen} />
+          {/* <ProfileStack.Screen name="YourListings" component={YourListingsScreen} /> */}
+          {/* <ProfileStack.Screen name="AddNewItem" component={AddNewItemScreen} /> */}
+          {/* <ProfileStack.Screen name="YourClasses" component={YourClassesScreen} /> */}
+          {/* <ProfileStack.Screen name="Earnings" component={EarningsScreen} /> */}
+          <ProfileStack.Screen name="TodayMarketScreen" component={TodayMarketScreen} />
+        </>
+      ) : (
+        <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      )}
+    </ProfileStack.Navigator>
   );
 };
 
@@ -36,6 +92,8 @@ const AppTabs = () => {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
+          } else if (route.name === 'Market') {
+            iconName = focused ? 'basket' : 'basket-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -47,19 +105,46 @@ const AppTabs = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeStackScreen} // Use the HomeStack instead of directly using HomeScreen
+        component={HomeStackScreen}
         options={({ route }) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? '';
-          console.log("Route name is", routeName);
           
-          // Only hide tab bar for ProductsTabs, keep it visible for TodayMarketScreen
+          // Only hide tab bar for specific screens
           return {
             tabBarStyle: routeName === 'ProductsTabs' ? { display: 'none' } : undefined
           };
         }}
       />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen 
+        name="Profile" 
+        component={FarmerProfileScreen}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+          
+          // Hide tab bar for screens that should be full screen
+          const screensToHideTabBar = [
+            'YourListings', 
+            'AddNewItem', 
+            'YourClasses', 
+            'Earnings',
+            'TodayMarketScreen'
+          ];
+          
+          return {
+            tabBarStyle: screensToHideTabBar.includes(routeName) 
+              ? { display: 'none' } 
+              : undefined
+          };
+        }}
+      />
+      <Tab.Screen 
+        name="Market" 
+        component={TodayMarketScreen}
+      />
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingsScreen} 
+      />
     </Tab.Navigator>
   );
 };
