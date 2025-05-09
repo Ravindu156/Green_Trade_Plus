@@ -93,7 +93,7 @@ const FarmerProfileScreen = ({ navigation }) => {
             
             <TouchableOpacity 
               style={styles.actionButton}
-              onPress={() => navigation.navigate('AddNewItem')}  
+              onPress={() => navigation.navigate('AddNewItemScreen')}  
             >
               <Ionicons name="add-circle" size={20} color={COLORS.textDark} />
               <Text style={styles.actionText}>Add New Item</Text>

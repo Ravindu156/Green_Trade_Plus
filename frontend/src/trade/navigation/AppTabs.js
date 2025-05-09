@@ -11,7 +11,7 @@ import FarmerProfileScreen from '../screens/FarmerProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TodayMarketScreen from '../screens/TodayMarketScreen';
 // import YourListingsScreen from '../screens/YourListingsScreen';
-// import AddNewItemScreen from '../screens/AddNewItemScreen';
+import AddNewItemScreen from '../screens/AddNewItemScreen';
 // import YourClassesScreen from '../screens/YourClassesScreen';
 // import EarningsScreen from '../screens/EarningsScreen';
 import { COLORS } from '../constants/colors';
@@ -39,8 +39,9 @@ const ProfileStackScreen = () => {
     // Fetch user role from AsyncStorage
     const getUserRole = async () => {
       try {
-        const role = await AsyncStorage.getItem('userRole');
-        setUserRole(role);
+        const userData = await AsyncStorage.getItem('user');
+        const user = JSON.parse(userData);
+        setUserRole(user.role);
       } catch (error) {
         console.error('Error fetching user role:', error);
       } finally {
@@ -67,7 +68,7 @@ const ProfileStackScreen = () => {
         <>
           <ProfileStack.Screen name="ProfileMain" component={FarmerProfileScreen} />
           {/* <ProfileStack.Screen name="YourListings" component={YourListingsScreen} /> */}
-          {/* <ProfileStack.Screen name="AddNewItem" component={AddNewItemScreen} /> */}
+          <ProfileStack.Screen name="AddNewItemScreen" component={AddNewItemScreen} />
           {/* <ProfileStack.Screen name="YourClasses" component={YourClassesScreen} /> */}
           {/* <ProfileStack.Screen name="Earnings" component={EarningsScreen} /> */}
           <ProfileStack.Screen name="TodayMarketScreen" component={TodayMarketScreen} />
@@ -117,14 +118,14 @@ const AppTabs = () => {
       />
       <Tab.Screen 
         name="Profile" 
-        component={FarmerProfileScreen}
+        component={ProfileStackScreen}
         options={({ route }) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? '';
           
           // Hide tab bar for screens that should be full screen
           const screensToHideTabBar = [
             'YourListings', 
-            'AddNewItem', 
+            'AddNewItemScreen', 
             'YourClasses', 
             'Earnings',
             'TodayMarketScreen'
