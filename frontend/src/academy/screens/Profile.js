@@ -6,36 +6,36 @@ const Profile = () => {
   return (
     <View style={styles.container}>
       <View style={styles.profileHeader}>
-        <Avatar.Image 
-          size={100} 
-          source={require('../assets/profile-placeholder.jpg')} 
+        {/* <Avatar.Image
+          size={100}
+          source={require('../assets/profile-placeholder.jpg')}
           style={styles.avatar}
-        />
+        /> */}
         <Title style={styles.name}>Ravindu Hirushanka</Title>
       </View>
-      
+
       <Divider style={styles.divider} />
-      
+
       <List.Section>
         <List.Item
           title="My Courses"
           left={() => <List.Icon icon="book" />}
-          onPress={() => {}}
+          onPress={() => { }}
         />
         <List.Item
           title="Certificates"
           left={() => <List.Icon icon="certificate" />}
-          onPress={() => {}}
+          onPress={() => { }}
         />
         <List.Item
           title="Settings"
           left={() => <List.Icon icon="cog" />}
-          onPress={() => {}}
+          onPress={() => { }}
         />
         <List.Item
           title="Logout"
           left={() => <List.Icon icon="logout" />}
-          onPress={() => {}}
+          onPress={() => { }}
         />
       </List.Section>
     </View>

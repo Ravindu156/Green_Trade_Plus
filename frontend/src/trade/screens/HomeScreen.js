@@ -88,7 +88,7 @@ const HomeScreen = () => {
             title: 'Courses',
             icon: 'book-outline',
             color: ['#558B2F', '#AED581'],
-            screen: 'CoursesScreen'
+            screen: 'BottomTabNavigator'
         },
         {
             id: 'products',
@@ -113,7 +113,9 @@ const HomeScreen = () => {
         } else if (screenName === 'TodayMarketScreen') {
             // Navigate within the HomeStack
             navigation.navigate(screenName);
-        } else {
+        } else if(screenName === 'BottomTabNavigator'){
+            navigation.navigate(screenName);
+        }else {
             setModalVisible(true);
         }
     };
