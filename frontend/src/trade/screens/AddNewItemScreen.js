@@ -242,26 +242,6 @@ const AddNewItemScreen = ({ navigation }) => {
               </View>
             </View>
 
-            {/* Price */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Price (per {unit})</Text>
-              <View style={styles.priceInputContainer}>
-                <Text style={styles.currencySymbol}>$</Text>
-                <TextInput
-                  style={[
-                    styles.input, 
-                    styles.priceInput, 
-                    priceError ? styles.inputError : null
-                  ]}
-                  placeholder="0.00"
-                  value={price}
-                  onChangeText={setPrice}
-                  keyboardType="numeric"
-                />
-              </View>
-              {priceError ? <Text style={styles.errorText}>{priceError}</Text> : null}
-            </View>
-
             {/* Description (Optional) */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Description (Optional)</Text>

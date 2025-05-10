@@ -23,10 +23,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // use your own CORS config
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                    new AntPathRequestMatcher("/api/auth/**")
+                    new AntPathRequestMatcher("/api/auth/**"),
+                    // Add your trade items API path here
+                    new AntPathRequestMatcher("/api/trade-items/**")
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -40,7 +42,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:8081")); // Your frontend origin
+        // Update CORS configuration to allow requests from Postman
+        config.setAllowedOrigins(Arrays.asList("http://localhost:8081", "*")); 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
