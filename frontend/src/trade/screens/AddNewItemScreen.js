@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import {
   View,
   Text,
@@ -9,7 +10,8 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -22,13 +24,15 @@ const AddNewItemScreen = ({ navigation }) => {
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('kg');
   const [isOrganic, setIsOrganic] = useState(true);
-  const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   
   // Error states
   const [nameError, setNameError] = useState('');
   const [quantityError, setQuantityError] = useState('');
-  const [priceError, setPriceError] = useState('');
+  
+  // Modal state
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Food categories
   const categories = [
@@ -49,6 +53,18 @@ const AddNewItemScreen = ({ navigation }) => {
     { label: 'Dozen', value: 'dozen' },
     { label: 'Bunch', value: 'bunch' },
   ];
+
+  // Reset the form
+  const resetForm = () => {
+    setCategory('vegetables');
+    setName('');
+    setQuantity('');
+    setUnit('kg');
+    setIsOrganic(true);
+    setDescription('');
+    setNameError('');
+    setQuantityError('');
+  };
 
   // Validate form fields
   const validateForm = () => {
@@ -73,67 +89,88 @@ const AddNewItemScreen = ({ navigation }) => {
       setQuantityError('');
     }
 
-    // Validate price
-    if (!price.trim()) {
-      setPriceError('Price is required');
-      isValid = false;
-    } else if (isNaN(Number(price)) || Number(price) <= 0) {
-      setPriceError('Please enter a valid price');
-      isValid = false;
-    } else {
-      setPriceError('');
-    }
-
     return isValid;
   };
 
   // Handle form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      // Create item object
+      setIsSubmitting(true);
       const newItem = {
         category,
         name,
         quantity: Number(quantity),
         unit,
         isOrganic,
-        price: Number(price),
         description,
         dateAdded: new Date().toISOString(),
       };
 
-      // In a real app, you would save this to a database or API
-      console.log('New item to be added:', newItem);
-      
-      // Show success message
-      Alert.alert(
-        "Success", 
-        `${name} has been added to your listings!`,
-        [
-          { 
-            text: "View Listings", 
-            onPress: () => navigation.navigate('YourListings') 
-          },
-          { 
-            text: "Add Another", 
-            onPress: () => {
-              // Reset form
-              setCategory('vegetables');
-              setName('');
-              setQuantity('');
-              setUnit('kg');
-              setIsOrganic(true);
-              setPrice('');
-              setDescription('');
-            } 
-          }
-        ]
-      );
+      try {
+        // Make POST request to backend
+        const response = await axios.post('http://localhost:8080/api/trade-items', newItem);
+
+        if (response.status === 201 || response.status === 200) {
+          // Show success modal instead of Alert
+          setSuccessModalVisible(true);
+        } else {
+          Alert.alert("Error", "Something went wrong. Please try again.");
+        }
+      } catch (error) {
+        console.error('Failed to add item:', error.message);
+        Alert.alert("Error", "Unable to connect to server. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
+  };
+
+  // Handle "Add Another One" button press
+  const handleAddAnother = () => {
+    resetForm();
+    setSuccessModalVisible(false);
+  };
+
+  // Handle "OK" button press
+  const handleOk = () => {
+    setSuccessModalVisible(false);
+    navigation.navigate('ProfileMain');
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Success Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={successModalVisible}
+        onRequestClose={() => setSuccessModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="checkmark-circle" size={50} color={COLORS.primary} />
+              <Text style={styles.modalTitle}>Success</Text>
+            </View>
+            <Text style={styles.modalMessage}>You have successfully added new Item</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.addAnotherButton]} 
+                onPress={handleAddAnother}
+              >
+                <Text style={styles.addAnotherButtonText}>Add Another One</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.okButton]} 
+                onPress={handleOk}
+              >
+                <Text style={styles.okButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingContainer}
@@ -258,10 +295,13 @@ const AddNewItemScreen = ({ navigation }) => {
 
             {/* Submit Button */}
             <TouchableOpacity 
-              style={styles.submitButton}
+              style={[styles.submitButton, isSubmitting && styles.disabledButton]}
               onPress={handleSubmit}
+              disabled={isSubmitting}
             >
-              <Text style={styles.submitButtonText}>Add Item</Text>
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? 'Adding...' : 'Add Item'}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -376,23 +416,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textDark,
   },
-  priceInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  currencySymbol: {
-    paddingLeft: 12,
-    fontSize: 16,
-    color: COLORS.textDark,
-  },
-  priceInput: {
-    flex: 1,
-    borderWidth: 0,
-  },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
@@ -404,8 +427,76 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  disabledButton: {
+    backgroundColor: '#cccccc',
+  },
   submitButtonText: {
     color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.textDark,
+    marginTop: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: COLORS.textDark,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'column',
+    width: '100%',
+  },
+  modalButton: {
+    borderRadius: 8,
+    padding: 15,
+    alignItems: 'center',
+    marginVertical: 6,
+  },
+  okButton: {
+    backgroundColor: COLORS.primary,
+  },
+  okButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addAnotherButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  addAnotherButtonText: {
+    color: COLORS.primary,
     fontSize: 16,
     fontWeight: 'bold',
   },
