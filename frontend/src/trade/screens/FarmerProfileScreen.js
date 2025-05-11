@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
   Image,
   SafeAreaView,
   ActivityIndicator
@@ -16,6 +16,7 @@ import { COLORS } from '../constants/colors';
 const FarmerProfileScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  console.log("Hello User Data", userData);
 
   useEffect(() => {
     // Fetch user data when component mounts
@@ -28,9 +29,12 @@ const FarmerProfileScreen = ({ navigation }) => {
       const user = await AsyncStorage.getItem('user');
       const userData = JSON.parse(user);
       // Sample data - in a real app, this would come from an API
+      console.log("All User Data", userData);
+
       setUserData({
         name: userData.userName,
         role: userData.role,
+        profilePhoto: userData.profilePhotoPath,
         listings: 5,
         classes: 2,
         earnings: 1250.75,
@@ -69,11 +73,10 @@ const FarmerProfileScreen = ({ navigation }) => {
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-           {/*  <Image 
-              source={require('../assets/default-profile.png')} 
-              style={styles.profileImage} 
-              defaultSource={require('../assets/default-profile.png')}
-            /> */}
+            <Image
+              source={{ uri: `http://localhost:8080/api/auth/profile-photos/${userData.profilePhoto}` }}
+              style={styles.profileImage}
+            />
           </View>
           <Text style={styles.userName}>Hello, {userData?.name}</Text>
           <Text style={styles.userRole}>{userData?.role}</Text>
@@ -82,7 +85,7 @@ const FarmerProfileScreen = ({ navigation }) => {
         {/* Quick Actions */}
         <View style={styles.quickActionsContainer}>
           <View style={styles.actionsRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation.navigate('YourListings')}
             >
@@ -90,10 +93,10 @@ const FarmerProfileScreen = ({ navigation }) => {
               <Text style={styles.actionText}>Your Listings</Text>
               <Text style={styles.actionCount}>{userData?.listings}</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => navigation.navigate('AddNewItemScreen')}  
+              onPress={() => navigation.navigate('AddNewItemScreen')}
             >
               <Ionicons name="add-circle" size={20} color={COLORS.textDark} />
               <Text style={styles.actionText}>Add New Item</Text>
@@ -101,7 +104,7 @@ const FarmerProfileScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.actionsRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation.navigate('YourClasses')}
             >
@@ -109,8 +112,8 @@ const FarmerProfileScreen = ({ navigation }) => {
               <Text style={styles.actionText}>Your Classes</Text>
               <Text style={styles.actionCount}>{userData?.classes}</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.actionButton}
               onPress={() => navigation.navigate('Earnings')}
             >
@@ -142,7 +145,7 @@ const FarmerProfileScreen = ({ navigation }) => {
               <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.marketSummaryBox}>
             <Text style={styles.marketInfoText}>Current top crops: Tomatoes, Corn, Apples</Text>
             <Text style={styles.marketInfoText}>Market is active with 15% more buyers today</Text>

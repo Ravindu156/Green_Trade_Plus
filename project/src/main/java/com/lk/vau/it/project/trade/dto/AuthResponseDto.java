@@ -7,14 +7,16 @@ public class AuthResponseDto {
     private String email;
     private String phoneNumber;
     private String role;
+    private String profilePhotoPath;
 
-    public AuthResponseDto(Long id, String token, String userName, String email, String phoneNumber, String role) {
+    public AuthResponseDto(Long id, String token, String userName, String email, String phoneNumber, String role, String profilePhotoPath) {
         this.id = id;
         this.token = token;
         this.userName = userName;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.role = role;
+        this.profilePhotoPath = profilePhotoPath;
     }
 
     public Long getId() {
@@ -63,5 +65,13 @@ public class AuthResponseDto {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfilePhotoPath() {
+        return profilePhotoPath;
+    }
+
+    public void setProfilePhotoPath(String profilePhotoPath) {
+        this.profilePhotoPath = profilePhotoPath;
     }
 }

@@ -86,7 +86,8 @@ public class UserService {
                 savedUser.getUserName(),
                 savedUser.getEmail(),
                 savedUser.getPhoneNumber(),
-                savedUser.getRole());
+                savedUser.getRole(),
+                savedUser.getProfilePhotoPath());
     }
 
     public AuthResponseDto loginUser(LoginRequestDto loginRequest) {
@@ -114,7 +115,8 @@ public class UserService {
                 user.getUserName(),
                 user.getEmail(),
                 user.getPhoneNumber(),
-                user.getRole());
+                user.getRole(),
+                user.getProfilePhotoPath());
     }
 
     /**
