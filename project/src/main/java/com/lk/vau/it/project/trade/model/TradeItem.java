@@ -11,6 +11,9 @@ public class TradeItem {
     private Long id;
     
     @Column(nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
     private String category;
     
     @Column(nullable = false)
@@ -35,7 +38,8 @@ public class TradeItem {
     }
     
     // Constructor with fields
-    public TradeItem(String category, String name, Double quantity, String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+    public TradeItem(Long userId, String category, String name, Double quantity, String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+        this.userId = userId;
         this.category = category;
         this.name = name;
         this.quantity = quantity;
@@ -52,6 +56,14 @@ public class TradeItem {
     
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
     
     public String getCategory() {
@@ -114,6 +126,7 @@ public class TradeItem {
     public String toString() {
         return "Item{" +
                 "id=" + id +
+                ", userId='" + userId + '\'' +
                 ", category='" + category + '\'' +
                 ", name='" + name + '\'' +
                 ", quantity=" + quantity +

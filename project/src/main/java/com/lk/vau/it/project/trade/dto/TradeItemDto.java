@@ -9,6 +9,8 @@ import jakarta.validation.constraints.Positive;
 public class TradeItemDto {
     private Long id;
 
+    private Long userId;
+
     @NotBlank(message = "Category is required")
     private String category;
 
@@ -34,7 +36,8 @@ public class TradeItemDto {
     }
     
     // Constructor with fields
-    public TradeItemDto(String category, String name, Double quantity, String unit, Boolean isOrganic, String description) {
+    public TradeItemDto(Long userId, String category, String name, Double quantity, String unit, Boolean isOrganic, String description) {
+        this.userId = userId;
         this.category = category;
         this.name = name;
         this.quantity = quantity;
@@ -45,8 +48,9 @@ public class TradeItemDto {
     }
     
     // Constructor for mapping from entity
-    public TradeItemDto(Long id, String category, String name, Double quantity, String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+    public TradeItemDto(Long id, Long userId, String category, String name, Double quantity, String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
         this.id = id;
+        this.userId = userId;
         this.category = category;
         this.name = name;
         this.quantity = quantity;
@@ -63,6 +67,14 @@ public class TradeItemDto {
     
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
     
     public String getCategory() {

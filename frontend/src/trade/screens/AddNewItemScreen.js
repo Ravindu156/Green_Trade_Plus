@@ -13,6 +13,7 @@ import {
   Alert,
   Modal
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { COLORS } from '../constants/colors';
@@ -25,11 +26,11 @@ const AddNewItemScreen = ({ navigation }) => {
   const [unit, setUnit] = useState('kg');
   const [isOrganic, setIsOrganic] = useState(true);
   const [description, setDescription] = useState('');
-  
+
   // Error states
   const [nameError, setNameError] = useState('');
   const [quantityError, setQuantityError] = useState('');
-  
+
   // Modal state
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,9 +95,13 @@ const AddNewItemScreen = ({ navigation }) => {
 
   // Handle form submission
   const handleSubmit = async () => {
+    const userData = await AsyncStorage.getItem('user');
+    const user = JSON.parse(userData);
+    const userId = user.id;
     if (validateForm()) {
       setIsSubmitting(true);
       const newItem = {
+        userId:userId,
         category,
         name,
         quantity: Number(quantity),
@@ -154,14 +159,14 @@ const AddNewItemScreen = ({ navigation }) => {
             </View>
             <Text style={styles.modalMessage}>You have successfully added new Item</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.addAnotherButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.addAnotherButton]}
                 onPress={handleAddAnother}
               >
                 <Text style={styles.addAnotherButtonText}>Add Another One</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.okButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.okButton]}
                 onPress={handleOk}
               >
                 <Text style={styles.okButtonText}>OK</Text>
@@ -197,10 +202,10 @@ const AddNewItemScreen = ({ navigation }) => {
                   style={styles.picker}
                 >
                   {categories.map((cat) => (
-                    <Picker.Item 
-                      key={cat.value} 
-                      label={cat.label} 
-                      value={cat.value} 
+                    <Picker.Item
+                      key={cat.value}
+                      label={cat.label}
+                      value={cat.value}
                     />
                   ))}
                 </Picker>
@@ -225,8 +230,8 @@ const AddNewItemScreen = ({ navigation }) => {
               <View style={styles.quantityContainer}>
                 <TextInput
                   style={[
-                    styles.input, 
-                    styles.quantityInput, 
+                    styles.input,
+                    styles.quantityInput,
                     quantityError ? styles.inputError : null
                   ]}
                   placeholder="Enter quantity"
@@ -241,10 +246,10 @@ const AddNewItemScreen = ({ navigation }) => {
                     style={styles.unitPicker}
                   >
                     {units.map((u) => (
-                      <Picker.Item 
-                        key={u.value} 
-                        label={u.label} 
-                        value={u.value} 
+                      <Picker.Item
+                        key={u.value}
+                        label={u.label}
+                        value={u.value}
                       />
                     ))}
                   </Picker>
@@ -257,7 +262,7 @@ const AddNewItemScreen = ({ navigation }) => {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Product Type</Text>
               <View style={styles.radioContainer}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.radioOption}
                   onPress={() => setIsOrganic(true)}
                 >
@@ -267,7 +272,7 @@ const AddNewItemScreen = ({ navigation }) => {
                   <Text style={styles.radioLabel}>Organic</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.radioOption}
                   onPress={() => setIsOrganic(false)}
                 >
@@ -294,7 +299,7 @@ const AddNewItemScreen = ({ navigation }) => {
             </View>
 
             {/* Submit Button */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.submitButton, isSubmitting && styles.disabledButton]}
               onPress={handleSubmit}
               disabled={isSubmitting}
@@ -435,7 +440,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  
+
   // Modal styles
   modalOverlay: {
     flex: 1,

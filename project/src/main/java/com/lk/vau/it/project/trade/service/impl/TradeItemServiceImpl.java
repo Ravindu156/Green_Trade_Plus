@@ -65,6 +65,7 @@ public class TradeItemServiceImpl implements TradeItemService {
                 .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + id));
 
         // Update the fields
+        existingItem.setUserId(itemDto.getUserId());
         existingItem.setCategory(itemDto.getCategory());
         existingItem.setName(itemDto.getName());
         existingItem.setQuantity(itemDto.getQuantity());
@@ -88,6 +89,7 @@ public class TradeItemServiceImpl implements TradeItemService {
     // Helper methods to convert between Entity and DTO
     private TradeItem convertToEntity(TradeItemDto itemDto) {
         TradeItem item = new TradeItem();
+        item.setUserId(itemDto.getUserId());
         item.setCategory(itemDto.getCategory());
         item.setName(itemDto.getName());
         item.setQuantity(itemDto.getQuantity());
@@ -101,6 +103,7 @@ public class TradeItemServiceImpl implements TradeItemService {
     private TradeItemDto convertToDTO(TradeItem item) {
         return new TradeItemDto(
                 item.getId(),
+                item.getUserId(),
                 item.getCategory(),
                 item.getName(),
                 item.getQuantity(),
