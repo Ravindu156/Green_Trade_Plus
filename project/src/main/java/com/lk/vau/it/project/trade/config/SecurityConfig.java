@@ -28,7 +28,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     new AntPathRequestMatcher("/api/auth/**"),
                     // Add your trade items API path here
-                    new AntPathRequestMatcher("/api/trade-items/**")
+                    new AntPathRequestMatcher("/api/trade-items/**"),
+                    new AntPathRequestMatcher("/api/admin/price-settings/**")
                 ).permitAll()
                 .anyRequest().authenticated()
             )

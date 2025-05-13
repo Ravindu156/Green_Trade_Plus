@@ -7,6 +7,7 @@ import AppTabs from './AppTabs';
 import ProductsTabs from '../../ecommerce/navigation/ProductsTabs';
 import BottomTabNavigator from '../../academy/navigation/BottomTabNavigator ';
 import AdminBottomTabs from './AdminBottomTabs'; // import your admin tab
+import AdminPriceSettingScreen from '../screens/Admin/AdminPriceSettingScreen';
 
 const Stack = createStackNavigator();
 
@@ -42,7 +43,10 @@ const RootNavigator = () => {
       {user ? (
         <>
           {role === 'admin' ? (
-            <Stack.Screen name="AdminBottomTabs" component={AdminBottomTabs} />
+            <>
+              <Stack.Screen name="AdminBottomTabs" component={AdminBottomTabs} />
+              <Stack.Screen name="AdminPriceSetting" component={AdminPriceSettingScreen} />
+            </>
           ) : (
             <Stack.Screen name="App" component={AppTabs} />
           )}
