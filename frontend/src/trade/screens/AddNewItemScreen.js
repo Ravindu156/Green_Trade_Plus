@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   View,
@@ -11,7 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Modal
+  Modal,
+  FlatList
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +27,10 @@ const AddNewItemScreen = ({ navigation }) => {
   const [unit, setUnit] = useState('kg');
   const [isOrganic, setIsOrganic] = useState(true);
   const [description, setDescription] = useState('');
+  
+  // Dropdown state
+  const [showItemDropdown, setShowItemDropdown] = useState(false);
+  const [filteredItems, setFilteredItems] = useState([]);
 
   // Error states
   const [nameError, setNameError] = useState('');
@@ -45,6 +50,16 @@ const AddNewItemScreen = ({ navigation }) => {
     { label: 'Nuts & Seeds', value: 'nuts_seeds' },
   ];
 
+  // Predefined items for each category
+  const itemsByCategory = {
+    vegetables: ['Carrot', 'Tomato', 'Potato', 'Onion', 'Spinach', 'Broccoli', 'Bell Pepper', 'Cucumber', 'Zucchini', 'Lettuce', 'Cabbage', 'Cauliflower', 'Eggplant', 'Radish', 'Green Beans', 'Asparagus'],
+    fruits: ['Apple', 'Banana', 'Orange', 'Grapes', 'Strawberry', 'Mango', 'Pineapple', 'Watermelon', 'Blueberry', 'Kiwi', 'Peach', 'Pear', 'Cherry', 'Plum', 'Raspberry', 'Lemon'],
+    grains: ['Rice', 'Wheat', 'Barley', 'Oats', 'Quinoa', 'Corn', 'Millet', 'Rye', 'Buckwheat', 'Amaranth', 'Bulgur', 'Farro'],
+    dairy: ['Milk', 'Cheese', 'Yogurt', 'Butter', 'Cream', 'Cottage Cheese', 'Kefir', 'Buttermilk', 'Whey', 'Ghee', 'Paneer'],
+    herbs: ['Basil', 'Parsley', 'Cilantro', 'Mint', 'Rosemary', 'Thyme', 'Oregano', 'Sage', 'Dill', 'Chives', 'Tarragon', 'Lemongrass'],
+    nuts_seeds: ['Almonds', 'Walnuts', 'Cashews', 'Peanuts', 'Pistachios', 'Sunflower Seeds', 'Pumpkin Seeds', 'Chia Seeds', 'Flax Seeds', 'Sesame Seeds', 'Hazelnuts', 'Pine Nuts']
+  };
+
   // Units for quantity
   const units = [
     { label: 'Kilogram (kg)', value: 'kg' },
@@ -54,6 +69,42 @@ const AddNewItemScreen = ({ navigation }) => {
     { label: 'Dozen', value: 'dozen' },
     { label: 'Bunch', value: 'bunch' },
   ];
+
+  // Update filtered items when category changes
+  useEffect(() => {
+    setName('');
+    filterItems('');
+  }, [category]);
+
+  // Filter items based on user input
+  const filterItems = (text) => {
+    const categoryItems = itemsByCategory[category] || [];
+    
+    if (text === '') {
+      setFilteredItems(categoryItems);
+    } else {
+      const filtered = categoryItems.filter(
+        item => item.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    }
+    
+    setShowItemDropdown(true);
+  };
+
+  // Handle item name change
+  const handleNameChange = (text) => {
+    setName(text);
+    filterItems(text);
+    setNameError('');
+  };
+
+  // Handle item selection from dropdown
+  const handleItemSelect = (item) => {
+    setName(item);
+    setShowItemDropdown(false);
+    setNameError('');
+  };
 
   // Reset the form
   const resetForm = () => {
@@ -65,6 +116,7 @@ const AddNewItemScreen = ({ navigation }) => {
     setDescription('');
     setNameError('');
     setQuantityError('');
+    setShowItemDropdown(false);
   };
 
   // Validate form fields
@@ -212,15 +264,57 @@ const AddNewItemScreen = ({ navigation }) => {
               </View>
             </View>
 
-            {/* Item Name */}
+            {/* Item Name with Dropdown */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>Item Name</Text>
-              <TextInput
-                style={[styles.input, nameError ? styles.inputError : null]}
-                placeholder="Enter item name"
-                value={name}
-                onChangeText={setName}
-              />
+              <View style={styles.dropdownContainer}>
+                <TextInput
+                  style={[styles.input, nameError ? styles.inputError : null]}
+                  placeholder={`Enter or select ${category}`}
+                  value={name}
+                  onChangeText={handleNameChange}
+                  onFocus={() => filterItems(name)}
+                  onBlur={() => {
+                    // Delay hiding dropdown to allow for item selection
+                    setTimeout(() => setShowItemDropdown(false), 200);
+                  }}
+                />
+                <TouchableOpacity 
+                  style={styles.dropdownIcon}
+                  onPress={() => {
+                    setShowItemDropdown(!showItemDropdown);
+                    filterItems(name);
+                  }}
+                >
+                  <Ionicons 
+                    name={showItemDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={COLORS.textDark} 
+                  />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Dropdown List */}
+              {showItemDropdown && filteredItems.length > 0 && (
+                <View style={styles.dropdown}>
+                  <FlatList
+                    data={filteredItems}
+                    keyExtractor={(item, index) => index.toString()}
+                    keyboardShouldPersistTaps="always"
+                    nestedScrollEnabled={true}
+                    style={styles.dropdownList}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.dropdownItem}
+                        onPress={() => handleItemSelect(item)}
+                      >
+                        <Text style={styles.dropdownItemText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              )}
+              
               {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
             </View>
 
@@ -318,22 +412,23 @@ const AddNewItemScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFFFF',
   },
   keyboardAvoidingContainer: {
     flex: 1,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: COLORS.textDark,
   },
   formContainer: {
@@ -344,68 +439,68 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: COLORS.textDark,
     marginBottom: 8,
   },
-  input: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    fontSize: 16,
-  },
-  inputError: {
-    borderColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 12,
-    marginTop: 5,
-  },
   pickerContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    overflow: 'hidden',
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    backgroundColor: '#F9F9F9',
   },
   picker: {
     height: 50,
   },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    backgroundColor: '#F9F9F9',
+  },
+  inputError: {
+    borderColor: '#FF6B6B',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 14,
+    marginTop: 5,
+  },
   quantityContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   quantityInput: {
-    flex: 2,
+    flex: 1,
     marginRight: 10,
   },
   unitPickerContainer: {
     flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    overflow: 'hidden',
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    backgroundColor: '#F9F9F9',
   },
   unitPicker: {
     height: 50,
   },
   radioContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   radioOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 30,
+    marginRight: 25,
   },
   radioButton: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
-    borderWidth: 2,
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 1,
     borderColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -424,87 +519,118 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+    paddingTop: 12,
   },
   submitButton: {
     backgroundColor: COLORS.primary,
+    paddingVertical: 15,
     borderRadius: 8,
-    padding: 15,
     alignItems: 'center',
     marginTop: 10,
   },
   disabledButton: {
-    backgroundColor: '#cccccc',
+    backgroundColor: '#A0A0A0',
   },
   submitButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 24,
-    width: '90%',
+    padding: 25,
+    width: '80%',
     alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   modalHeader: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 15,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: COLORS.textDark,
     marginTop: 10,
   },
   modalMessage: {
     fontSize: 16,
+    color: COLORS.textLight,
     textAlign: 'center',
-    color: COLORS.textDark,
-    marginBottom: 24,
+    marginBottom: 25,
   },
   modalButtons: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     width: '100%',
   },
   modalButton: {
+    flex: 1,
+    paddingVertical: 12,
     borderRadius: 8,
-    padding: 15,
     alignItems: 'center',
-    marginVertical: 6,
+    marginHorizontal: 5,
+  },
+  addAnotherButton: {
+    backgroundColor: '#F5F5F5',
+  },
+  addAnotherButtonText: {
+    color: COLORS.textDark,
+    fontWeight: '500',
   },
   okButton: {
     backgroundColor: COLORS.primary,
   },
   okButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
-  addAnotherButton: {
-    backgroundColor: 'white',
+  // New styles for dropdown
+  dropdownContainer: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dropdownIcon: {
+    position: 'absolute',
+    right: 12,
+    height: 50,
+    justifyContent: 'center',
+  },
+  dropdown: {
+    position: 'relative',
+    zIndex: 1000,
+    width: '100%',
+    maxHeight: 200,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    marginTop: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  addAnotherButtonText: {
-    color: COLORS.primary,
+  dropdownList: {
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  dropdownItemText: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
+    color: COLORS.textDark,
+  }
 });
 
 export default AddNewItemScreen;
