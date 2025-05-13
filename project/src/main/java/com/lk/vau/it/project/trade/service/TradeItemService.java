@@ -7,6 +7,7 @@ public interface  TradeItemService {
     TradeItemDto createItem(TradeItemDto ItemDto);
     List<TradeItemDto> getAllItems();
     TradeItemDto getItemById(Long id);
+    List<TradeItemDto> getItemsByUserId(Long userId);
     List<TradeItemDto> getItemsByCategory(String category);
     List<TradeItemDto> getOrganicItems(Boolean isOrganic);
     TradeItemDto updateItem(Long id, TradeItemDto ItemDto);

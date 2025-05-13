@@ -7,6 +7,7 @@ import java.util.List;
 
 @Repository
 public interface TradeItemRepository extends JpaRepository<TradeItem, Long> {
+    List<TradeItem> findByUserId(Long userId);
     List<TradeItem> findByCategory(String category);
     List<TradeItem> findByIsOrganic(Boolean isOrganic);
 }

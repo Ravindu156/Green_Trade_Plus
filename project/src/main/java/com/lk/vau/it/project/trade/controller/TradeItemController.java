@@ -43,6 +43,12 @@ public class TradeItemController {
         TradeItemDto item = itemService.getItemById(id);
         return new ResponseEntity<>(item, HttpStatus.OK);
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<TradeItemDto>> getItemsByUserId(@PathVariable Long userId) {
+        List<TradeItemDto> items = itemService.getItemsByUserId(userId);
+        return new ResponseEntity<>(items, HttpStatus.OK);
+    }
     
     @GetMapping("/category/{category}")
     public ResponseEntity<List<TradeItemDto>> getItemsByCategory(@PathVariable String category) {

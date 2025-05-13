@@ -46,6 +46,13 @@ public class TradeItemServiceImpl implements TradeItemService {
     }
 
     @Override
+    public List<TradeItemDto> getItemsByUserId(Long userId) {
+        return itemRepository.findByUserId(userId).stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public List<TradeItemDto> getItemsByCategory(String category) {
         return itemRepository.findByCategory(category).stream()
                 .map(this::convertToDTO)
