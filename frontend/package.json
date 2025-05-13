@@ -30,7 +30,8 @@
     "react-native-paper": "^5.14.0",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-toast-message": "^2.3.0",
-    "react-native-web": "~0.19.13"
+    "react-native-web": "~0.19.13",
+    "sweetalert2": "^11.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

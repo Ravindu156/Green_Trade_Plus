@@ -10,11 +10,11 @@ import ProfileScreen from '../screens/ProfileScreen';
 import FarmerProfileScreen from '../screens/FarmerProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TodayMarketScreen from '../screens/TodayMarketScreen';
-// import YourListingsScreen from '../screens/YourListingsScreen';
 import AddNewItemScreen from '../screens/AddNewItemScreen';
 // import YourClassesScreen from '../screens/YourClassesScreen';
 // import EarningsScreen from '../screens/EarningsScreen';
 import { COLORS } from '../constants/colors';
+import FarmerYourListingsScreen from '../screens/FarmerYourListingsScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator();
@@ -67,7 +67,7 @@ const ProfileStackScreen = () => {
       {userRole === 'farmer' ? (
         <>
           <ProfileStack.Screen name="ProfileMain" component={FarmerProfileScreen} />
-          {/* <ProfileStack.Screen name="YourListings" component={YourListingsScreen} /> */}
+          <ProfileStack.Screen name="FarmerYourListingsScreen" component={FarmerYourListingsScreen} />
           <ProfileStack.Screen name="AddNewItemScreen" component={AddNewItemScreen} />
           {/* <ProfileStack.Screen name="YourClasses" component={YourClassesScreen} /> */}
           {/* <ProfileStack.Screen name="Earnings" component={EarningsScreen} /> */}

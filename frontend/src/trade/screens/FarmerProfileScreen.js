@@ -87,7 +87,7 @@ const FarmerProfileScreen = ({ navigation }) => {
           <View style={styles.actionsRow}>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => navigation.navigate('YourListings')}
+              onPress={() => navigation.navigate('FarmerYourListingsScreen')}
             >
               <Ionicons name="list" size={20} color={COLORS.textDark} />
               <Text style={styles.actionText}>Your Listings</Text>
