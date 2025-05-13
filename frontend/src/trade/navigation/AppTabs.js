@@ -64,17 +64,31 @@ const ProfileStackScreen = () => {
   // Use FarmerProfileScreen if user role is "farmer", otherwise use regular ProfileScreen
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-      {userRole === 'farmer' ? (
+      {userRole === 'farmer' && (
         <>
-          <ProfileStack.Screen name="ProfileMain" component={FarmerProfileScreen} />
+          <ProfileStack.Screen name="FarmerProfile" component={FarmerProfileScreen} />
           <ProfileStack.Screen name="FarmerYourListingsScreen" component={FarmerYourListingsScreen} />
           <ProfileStack.Screen name="AddNewItemScreen" component={AddNewItemScreen} />
-          {/* <ProfileStack.Screen name="YourClasses" component={YourClassesScreen} /> */}
-          {/* <ProfileStack.Screen name="Earnings" component={EarningsScreen} /> */}
           <ProfileStack.Screen name="TodayMarketScreen" component={TodayMarketScreen} />
         </>
-      ) : (
-        <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      )}
+
+      {userRole === 'seller' && (
+        <>
+          {/* <ProfileStack.Screen name="SellerProfile" component={ProfileScreen} /> */}
+          {/* Add seller-specific screens here */}
+        </>
+      )}
+
+      {userRole === 'admin' && (
+        <>
+          {/* <ProfileStack.Screen name="AdminProfile" component={ProfileScreen} /> */}
+          {/* Add admin-specific screens here */}
+        </>
+      )}
+
+      {!['farmer', 'seller', 'admin'].includes(userRole) && (
+        <ProfileStack.Screen name="DefaultProfile" component={ProfileScreen} />
       )}
     </ProfileStack.Navigator>
   );
@@ -109,42 +123,42 @@ const AppTabs = () => {
         component={HomeStackScreen}
         options={({ route }) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? '';
-          
+
           // Only hide tab bar for specific screens
           return {
             tabBarStyle: routeName === 'ProductsTabs' ? { display: 'none' } : undefined
           };
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileStackScreen}
         options={({ route }) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? '';
-          
+
           // Hide tab bar for screens that should be full screen
           const screensToHideTabBar = [
-            'YourListings', 
-            'AddNewItemScreen', 
-            'YourClasses', 
+            /* 'YourListings',
+            'AddNewItemScreen',
+            'YourClasses',
             'Earnings',
-            'TodayMarketScreen'
+            'TodayMarketScreen' */
           ];
-          
+
           return {
-            tabBarStyle: screensToHideTabBar.includes(routeName) 
-              ? { display: 'none' } 
+            tabBarStyle: screensToHideTabBar.includes(routeName)
+              ? { display: 'none' }
               : undefined
           };
         }}
       />
-      <Tab.Screen 
-        name="Market" 
+      <Tab.Screen
+        name="Market"
         component={TodayMarketScreen}
       />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen} 
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
       />
     </Tab.Navigator>
   );

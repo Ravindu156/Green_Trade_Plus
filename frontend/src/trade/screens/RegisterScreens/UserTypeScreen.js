@@ -1,12 +1,15 @@
 // UserTypeScreen.js - First step of registration
 
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Image, 
+import { Alert, Modal, TextInput } from 'react-native';
+import { useState } from 'react';
+import SweetAlert from 'react-native-sweet-alert';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
   Animated,
   Dimensions
 } from 'react-native';
@@ -18,20 +21,27 @@ const { width } = Dimensions.get('window');
 const UserTypeScreen = ({ formData, updateFormData, goToNextStep, errors }) => {
   const userTypes = [
     { id: 'farmer', label: 'A Farmer'/* , icon: require('../../assets/images/farmer.png') */ },
-    { id: 'buyer', label: 'A Buyer'/* , icon: require('../../assets/images/buyer.png')  */},
+    { id: 'buyer', label: 'A Buyer'/* , icon: require('../../assets/images/buyer.png')  */ },
     { id: 'tutor', label: 'A Tutor'/* , icon: require('../../assets/images/tutor.png') */ },
     { id: 'seller', label: 'A Seller'/* , icon: require('../../assets/images/seller.png') */ },
+    { id: 'admin', label: 'An Admin' }
   ];
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [adminCodeInput, setAdminCodeInput] = useState('');
 
   const selectUserType = (type) => {
-    updateFormData({ role: type });
+    if (type === 'admin') {
+      setShowCodeModal(true);
+    } else {
+      updateFormData({ role: type });
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Who are you?</Text>
       <Text style={styles.subtitle}>Select the option that best describes you</Text>
-      
+
       <View style={styles.userTypesContainer}>
         {userTypes.map((type) => (
           <TouchableOpacity
@@ -57,21 +67,97 @@ const UserTypeScreen = ({ formData, updateFormData, goToNextStep, errors }) => {
           </TouchableOpacity>
         ))}
       </View>
-      
+
       {errors.userType && (
         <Text style={styles.errorText}>{errors.userType}</Text>
       )}
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[
           styles.nextButton,
           formData.role ? styles.nextButtonActive : styles.nextButtonInactive
-        ]} 
+        ]}
         onPress={goToNextStep}
         disabled={!formData.role}
       >
         <AntDesign name="arrowright" size={24} color="white" />
       </TouchableOpacity>
+
+      <Modal
+        transparent
+        visible={showCodeModal}
+        animationType="slide"
+        onRequestClose={() => setShowCodeModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <View style={{
+            width: '80%',
+            backgroundColor: '#fff',
+            padding: 20,
+            borderRadius: 10,
+            elevation: 10,
+          }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+              Enter Admin Code
+            </Text>
+            <TextInput
+              placeholder="Enter code"
+              value={adminCodeInput}
+              onChangeText={setAdminCodeInput}
+              style={{
+                borderWidth: 1,
+                borderColor: '#ccc',
+                padding: 10,
+                borderRadius: 5,
+                marginBottom: 20,
+              }}
+              secureTextEntry
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (adminCodeInput === '12345') {
+                    updateFormData({ role: 'admin' });
+                    Alert.alert('Access Granted', 'Admin access approved.');
+                    setShowCodeModal(false);
+                    setAdminCodeInput('');
+                  } else {
+                    Alert.alert('Invalid Code', 'You are not allowed to register as an admin.');
+                  }
+                }}
+                style={{
+                  backgroundColor: COLORS.primary,
+                  padding: 10,
+                  borderRadius: 5,
+                  marginRight: 10,
+                }}
+              >
+                <Text style={{ color: 'white' }}>Submit</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setShowCodeModal(false);
+                  setAdminCodeInput('');
+                }}
+                style={{
+                  backgroundColor: '#aaa',
+                  padding: 10,
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={{ color: 'white' }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 };
