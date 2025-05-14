@@ -229,7 +229,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
 
                 // Match by name
                 const matchedItem = existingItems.find(existing => existing.itemName === item.name);
-                console.log("matcheditem id", item.id);
+                console.log("matcheditems", item);
                 
                 const data = {
                     itemId: item.id, // only if it exists

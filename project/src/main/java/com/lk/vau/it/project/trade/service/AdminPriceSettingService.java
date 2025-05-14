@@ -205,6 +205,7 @@ public class AdminPriceSettingService {
         dto.setItemName(priceSetting.getItemName());
         dto.setPricePerUnit(priceSetting.getPricePerUnit());
         dto.setUnit(priceSetting.getUnit());
+        dto.setLastUpdated(priceSetting.getLastUpdated());
         return dto;
     }
 
@@ -221,6 +222,7 @@ public class AdminPriceSettingService {
         entity.setItemName(dto.getItemName());
         entity.setPricePerUnit(dto.getPricePerUnit());
         entity.setUnit(dto.getUnit());
+        entity.setLastUpdated(dto.getLastUpdated());
         return entity;
     }
 }

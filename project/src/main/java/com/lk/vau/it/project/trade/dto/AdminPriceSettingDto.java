@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class AdminPriceSettingDto {
 
@@ -23,27 +24,31 @@ public class AdminPriceSettingDto {
     private BigDecimal pricePerUnit;
     
     private String unit;
+
+    private LocalDateTime lastUpdated;
     
     // Constructors
     public AdminPriceSettingDto() {
     }
     
-    public AdminPriceSettingDto(Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit) {
+    public AdminPriceSettingDto(Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit, LocalDateTime lastUpdated) {
         this.itemId = itemId;
         this.category = category;
         this.itemName = itemName;
         this.pricePerUnit = pricePerUnit;
         this.unit = unit;
+        this.lastUpdated = lastUpdated;
     }
     
     // For updating existing records
-    public AdminPriceSettingDto(Long id, Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit) {
+    public AdminPriceSettingDto(Long id, Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit, LocalDateTime lastUpdated) {
         this.id = id;
         this.itemId = itemId;
         this.category = category;
         this.itemName = itemName;
         this.pricePerUnit = pricePerUnit;
         this.unit = unit;
+        this.lastUpdated = lastUpdated;
     }
     
     // Getters and Setters
@@ -94,6 +99,14 @@ public class AdminPriceSettingDto {
     public void setUnit(String unit) {
         this.unit = unit;
     }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
     
     @Override
     public String toString() {
@@ -104,6 +117,7 @@ public class AdminPriceSettingDto {
                 ", itemName='" + itemName + '\'' +
                 ", pricePerUnit=" + pricePerUnit +
                 ", unit='" + unit + '\'' +
+                ", lastUpdated='" + lastUpdated + '\'' +
                 '}';
     }
 }
