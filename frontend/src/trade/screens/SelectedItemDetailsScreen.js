@@ -15,6 +15,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SelectedItemDetailsScreen = ({ route }) => {
     const navigation = useNavigation();
@@ -39,6 +40,10 @@ const SelectedItemDetailsScreen = ({ route }) => {
     }, []);
 
     const fetchTradeItems = async () => {
+        const userData = await AsyncStorage.getItem('user');
+        const user = JSON.parse(userData);
+        const UserId = user.id;
+        setCurrentUserId(UserId)
         setLoading(true);
         setError(null);
         try {
