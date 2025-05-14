@@ -15,6 +15,7 @@ import AddNewItemScreen from '../screens/AddNewItemScreen';
 // import EarningsScreen from '../screens/EarningsScreen';
 import { COLORS } from '../constants/colors';
 import FarmerYourListingsScreen from '../screens/FarmerYourListingsScreen';
+import SelectedItemDetailsScreen from '../screens/SelectedItemDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator();
@@ -26,6 +27,7 @@ const HomeStackScreen = () => {
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="TodayMarketScreen" component={TodayMarketScreen} />
+      <HomeStack.Screen name="SelectedItemDetailsScreen" component={SelectedItemDetailsScreen} />
     </HomeStack.Navigator>
   );
 };

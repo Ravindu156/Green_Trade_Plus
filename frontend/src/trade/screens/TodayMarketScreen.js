@@ -152,7 +152,10 @@ const TodayMarketScreen = ({ route }) => {
 
   // Render each market item
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.itemCard}>
+    <TouchableOpacity
+      style={styles.itemCard}
+      onPress={() => navigation.navigate('SelectedItemDetailsScreen', { item })}
+    >
       <Image source={item.image} style={styles.itemImage} />
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
