@@ -23,6 +23,8 @@ public class AdminPriceSetting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long itemId;
+
     @NotBlank(message = "Category is required")
     @Column(nullable = false)
     private String category;
@@ -47,7 +49,8 @@ public class AdminPriceSetting {
     public AdminPriceSetting() {
     }
 
-    public AdminPriceSetting(String category, String itemName, BigDecimal pricePerUnit, String unit) {
+    public AdminPriceSetting(Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit) {
+        this.itemId = itemId;
         this.category = category;
         this.itemName = itemName;
         this.pricePerUnit = pricePerUnit;
@@ -62,6 +65,14 @@ public class AdminPriceSetting {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
     }
 
     public String getCategory() {
@@ -116,6 +127,7 @@ public class AdminPriceSetting {
     public String toString() {
         return "AdminPriceSetting{" +
                 "id=" + id +
+                ", itemId='" + itemId + '\'' +
                 ", category='" + category + '\'' +
                 ", itemName='" + itemName + '\'' +
                 ", pricePerUnit=" + pricePerUnit +

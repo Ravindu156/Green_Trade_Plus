@@ -61,7 +61,7 @@ public class AdminPriceSettingService {
                 throw new IllegalArgumentException("Price setting already exists for this category and item name");
             }
         }
-
+        existingPriceSetting.setItemId(priceSettingDto.getItemId());
         existingPriceSetting.setCategory(priceSettingDto.getCategory());
         existingPriceSetting.setItemName(priceSettingDto.getItemName());
         existingPriceSetting.setPricePerUnit(priceSettingDto.getPricePerUnit());
@@ -200,6 +200,7 @@ public class AdminPriceSettingService {
     private AdminPriceSettingDto convertToDto(AdminPriceSetting priceSetting) {
         AdminPriceSettingDto dto = new AdminPriceSettingDto();
         dto.setId(priceSetting.getId());
+        dto.setItemId(priceSetting.getItemId());
         dto.setCategory(priceSetting.getCategory());
         dto.setItemName(priceSetting.getItemName());
         dto.setPricePerUnit(priceSetting.getPricePerUnit());
@@ -215,6 +216,7 @@ public class AdminPriceSettingService {
         if (dto.getId() != null) {
             entity.setId(dto.getId());
         }
+        entity.setItemId(dto.getItemId());
         entity.setCategory(dto.getCategory());
         entity.setItemName(dto.getItemName());
         entity.setPricePerUnit(dto.getPricePerUnit());

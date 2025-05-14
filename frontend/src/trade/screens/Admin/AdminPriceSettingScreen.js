@@ -47,7 +47,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
     const fetchPriceSettings = async () => {
         try {
             setLoading(true);
-            const token = await AsyncStorage.getItem('authToken');
+            const token = await AsyncStorage.getItem('token');
 
             // Fetch all added items
             const response = await axios.get('http://localhost:8080/api/trade-items', {
@@ -56,8 +56,27 @@ const AdminPriceSettingScreen = ({ navigation }) => {
 
             const items = response.data;
 
-            // Extract unique categories from items
-            const categoriesResponse = [...new Set(items.map(item => item.category))];
+            // Merge duplicate items by name and sum their quantities
+            const itemMap = new Map();
+
+            items.forEach(item => {
+                if (itemMap.has(item.name)) {
+                    const existingItem = itemMap.get(item.name);
+                    existingItem.quantity += item.quantity; // Sum quantities
+                } else {
+                    // Clone the item to avoid modifying the original
+                    itemMap.set(item.name, { ...item });
+                }
+            });
+
+            // Convert map back to array
+            const mergedItems = Array.from(itemMap.values());
+
+            // Log the merged items
+            console.log('Merged Items (no duplicates):', mergedItems);
+
+            // Extract unique categories from merged items
+            const categoriesResponse = [...new Set(mergedItems.map(item => item.category))];
 
             // Calculate next reset time at midnight (00:00)
             const now = new Date();
@@ -71,8 +90,9 @@ const AdminPriceSettingScreen = ({ navigation }) => {
             // Set the reset time to next midnight
             setResetTime(nextMidnight);
 
-            setPriceSettings(response.data);
-            setOriginalSettings(response.data);
+            // Set state with merged items
+            setPriceSettings(mergedItems);
+            setOriginalSettings(mergedItems);
             setCategories(categoriesResponse);
         } catch (error) {
             console.error('Failed to fetch price settings:', error);
@@ -82,6 +102,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
             setRefreshing(false);
         }
     };
+
 
     // Check if reset time has passed and reset if needed
     const checkResetTime = useCallback(async () => {
@@ -104,7 +125,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
     // Reset price settings after 24 hours
     const resetPriceSettings = async () => {
         try {
-            const token = await AsyncStorage.getItem('authToken');
+            const token = await AsyncStorage.getItem('token');
 
             // Call backend to reset prices or simply fetch fresh data
             await fetchPriceSettings();
@@ -153,7 +174,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
         if (searchQuery.trim()) {
             const lowercaseQuery = searchQuery.toLowerCase().trim();
             filtered = filtered.filter(item =>
-                item.itemName.toLowerCase().includes(lowercaseQuery) ||
+                item.name.toLowerCase().includes(lowercaseQuery) ||
                 item.category.toLowerCase().includes(lowercaseQuery)
             );
         }
@@ -162,58 +183,14 @@ const AdminPriceSettingScreen = ({ navigation }) => {
     }, [selectedCategory, searchQuery, originalSettings]);
 
     // Handle price change
-    const handlePriceChange = (id, price) => {
+    const handlePriceChange = (itemName, price) => {
         const updatedSettings = priceSettings.map(item => {
-            if (item.id === id) {
+            if (item.name === itemName) {
                 return { ...item, pricePerUnit: price };
             }
             return item;
         });
         setPriceSettings(updatedSettings);
-    };
-
-    // Save a single price setting
-    const savePriceSetting = async (id) => {
-        try {
-            setSaving(prev => ({ ...prev, [id]: true }));
-            const token = await AsyncStorage.getItem('authToken');
-
-            const settingToUpdate = priceSettings.find(item => item.id === id);
-
-            // Validate price
-            if (!settingToUpdate.pricePerUnit || isNaN(parseFloat(settingToUpdate.pricePerUnit)) || parseFloat(settingToUpdate.pricePerUnit) <= 0) {
-                Alert.alert('Error', 'Please enter a valid price (greater than 0)');
-                setSaving(prev => ({ ...prev, [id]: false }));
-                return;
-            }
-
-            // Convert to number if it's a string
-            const priceToSave = typeof settingToUpdate.pricePerUnit === 'string'
-                ? parseFloat(settingToUpdate.pricePerUnit)
-                : settingToUpdate.pricePerUnit;
-
-            const updatedSetting = {
-                ...settingToUpdate,
-                pricePerUnit: priceToSave
-            };
-
-            await axios.put(`http://localhost:8080/api/admin/price-settings/${id}`, updatedSetting, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            // Update original settings
-            setOriginalSettings(prev =>
-                prev.map(item => item.id === id ? { ...item, pricePerUnit: priceToSave } : item)
-            );
-
-            setSuccessMessage(`Price for ${settingToUpdate.itemName} updated successfully!`);
-            setSuccessModalVisible(true);
-        } catch (error) {
-            console.error('Failed to update price setting:', error);
-            Alert.alert('Error', 'Failed to update price. Please try again.');
-        } finally {
-            setSaving(prev => ({ ...prev, [id]: false }));
-        }
     };
 
     // Save all price settings at once
@@ -240,6 +217,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const existingItems = response.data;
+            console.log("Existing Items", existingItems);
 
             // Step 2: Create promises based on name matching
             const updatePromises = priceSettings.map(item => {
@@ -250,10 +228,11 @@ const AdminPriceSettingScreen = ({ navigation }) => {
 
 
                 // Match by name
-                const matchedItem = existingItems.find(existing => existing.name === item.name);
-
+                const matchedItem = existingItems.find(existing => existing.itemName === item.name);
+                console.log("matcheditem id", item.id);
+                
                 const data = {
-                    id: matchedItem?.id, // only if it exists
+                    itemId: item.id, // only if it exists
                     category: item.category,
                     itemName: item.name, // assuming "name" in frontend == itemName in backend
                     pricePerUnit: priceToSave,
@@ -341,22 +320,11 @@ const AdminPriceSettingScreen = ({ navigation }) => {
                 <TextInput
                     style={styles.priceInput}
                     value={item.pricePerUnit ? item.pricePerUnit.toString() : ''}
-                    onChangeText={(text) => handlePriceChange(item.id, text)}
+                    onChangeText={(text) => handlePriceChange(item.name, text)}
                     keyboardType="numeric"
                     placeholder="0.00"
                 />
             </View>
-            <TouchableOpacity
-                style={[styles.confirmButton, !item.pricePerUnit && styles.disabledButton]}
-                onPress={() => savePriceSetting(item.id)}
-                disabled={saving[item.id] || !item.pricePerUnit}
-            >
-                {saving[item.id] ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                )}
-            </TouchableOpacity>
         </View>
     );
 
@@ -466,7 +434,6 @@ const AdminPriceSettingScreen = ({ navigation }) => {
                     <Text style={[styles.columnHeader, styles.categoryHeader]}>Item</Text>
                     <Text style={[styles.columnHeader, styles.quantityHeader]}>Quantity</Text>
                     <Text style={[styles.columnHeader, styles.priceHeader]}>Price (LKR)</Text>
-                    <Text style={[styles.columnHeader, styles.actionHeader]}>Action</Text>
                 </View>
 
                 {/* Price Settings List */}

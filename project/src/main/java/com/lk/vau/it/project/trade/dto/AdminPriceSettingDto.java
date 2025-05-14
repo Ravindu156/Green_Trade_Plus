@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 public class AdminPriceSettingDto {
 
     private Long id;
+
+    private Long itemId;
     
     @NotBlank(message = "Category is required")
     private String category;
@@ -26,7 +28,8 @@ public class AdminPriceSettingDto {
     public AdminPriceSettingDto() {
     }
     
-    public AdminPriceSettingDto(String category, String itemName, BigDecimal pricePerUnit, String unit) {
+    public AdminPriceSettingDto(Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit) {
+        this.itemId = itemId;
         this.category = category;
         this.itemName = itemName;
         this.pricePerUnit = pricePerUnit;
@@ -34,8 +37,9 @@ public class AdminPriceSettingDto {
     }
     
     // For updating existing records
-    public AdminPriceSettingDto(Long id, String category, String itemName, BigDecimal pricePerUnit, String unit) {
+    public AdminPriceSettingDto(Long id, Long itemId, String category, String itemName, BigDecimal pricePerUnit, String unit) {
         this.id = id;
+        this.itemId = itemId;
         this.category = category;
         this.itemName = itemName;
         this.pricePerUnit = pricePerUnit;
@@ -49,6 +53,14 @@ public class AdminPriceSettingDto {
     
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getItemId() {
+        return itemId;
+    }
+    
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
     }
     
     public String getCategory() {
@@ -87,6 +99,7 @@ public class AdminPriceSettingDto {
     public String toString() {
         return "AdminPriceSettingDto{" +
                 "id=" + id +
+                ", itemId='" + itemId + '\'' +
                 ", category='" + category + '\'' +
                 ", itemName='" + itemName + '\'' +
                 ", pricePerUnit=" + pricePerUnit +

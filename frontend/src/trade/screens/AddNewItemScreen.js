@@ -191,7 +191,7 @@ const AddNewItemScreen = ({ navigation }) => {
   // Handle "OK" button press
   const handleOk = () => {
     setSuccessModalVisible(false);
-    navigation.navigate('ProfileMain');
+    navigation.navigate('FarmerProfile');
   };
 
   return (
