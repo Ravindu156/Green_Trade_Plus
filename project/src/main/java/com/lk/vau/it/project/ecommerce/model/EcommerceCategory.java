@@ -3,7 +3,11 @@ package com.lk.vau.it.project.ecommerce.model;
 public class EcommerceCategory {
     private Long id;
     private String name;
-    
+
+    public EcommerceCategory(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
     public Long getId() {
         return id;
     }

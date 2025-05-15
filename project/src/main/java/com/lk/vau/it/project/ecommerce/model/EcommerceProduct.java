@@ -5,7 +5,13 @@ public class EcommerceProduct {
     private String name;
     private String imageUrl;
     private double price;
-    
+
+    public EcommerceProduct(Long id, String name, String imageUrl, double price) {
+        this.id = id;
+        this.name = name;
+        this.imageUrl = imageUrl;
+        this.price = price;
+    }
     public Long getId() {
         return id;
     }

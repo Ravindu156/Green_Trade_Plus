@@ -3,7 +3,11 @@ package com.lk.vau.it.project.ecommerce.model;
 public class EcommercePromoBanner {
     private Long id;
     private String imageUrl;
-    
+
+    public EcommercePromoBanner(Long id, String imageUrl) {
+        this.id = id;
+        this.imageUrl = imageUrl;
+    }
     public Long getId() {
         return id;
     }
