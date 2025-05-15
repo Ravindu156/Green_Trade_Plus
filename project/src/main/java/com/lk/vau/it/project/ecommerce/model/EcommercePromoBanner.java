@@ -1,6 +1,6 @@
 package com.lk.vau.it.project.ecommerce.model;
 
-public class PromoBanner {
+public class EcommercePromoBanner {
     private Long id;
     private String imageUrl;
     
