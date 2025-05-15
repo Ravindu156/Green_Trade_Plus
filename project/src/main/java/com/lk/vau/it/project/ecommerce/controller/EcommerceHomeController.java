@@ -12,7 +12,7 @@ import java.util.List;
 @RequestMapping("/api/home")
 @CrossOrigin(origins = "*")
 
-public class HomeController {
+public class EcommerceHomeController {
     @GetMapping("/banners")
     public List<EcommercePromoBanner> getPromoBanners() {
         return Arrays.asList(
