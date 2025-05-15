@@ -25,7 +25,7 @@ public class HomeController {
         return Arrays.asList(
             new EcommerceCategory(1L, "Plastic Boxes"),
             new EcommerceCategory(2L, "Steel Boxes"),
-            new EcommerceCategoryy(3L, "Wooden Boxes")
+            new EcommerceCategory(3L, "Wooden Boxes")
         );
     }
 
