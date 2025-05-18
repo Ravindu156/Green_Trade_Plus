@@ -1,9 +1,9 @@
 package com.lk.vau.it.project.ecommerce.repository;
 
-import com.lk.vau.it.project.ecommerce.model.SellItem;
+import com.lk.vau.it.project.ecommerce.model.EcommerceItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SellItemRepository extends JpaRepository<SellItem, Long> {
+public interface EcommerceItemRepository extends JpaRepository<EcommerceItem, Long> {
 }
