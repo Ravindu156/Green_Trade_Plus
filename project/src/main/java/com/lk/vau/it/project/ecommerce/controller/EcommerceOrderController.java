@@ -1,8 +1,9 @@
 package com.lk.vau.it.project.ecommerce.controller;
 
 import com.lk.vau.it.project.ecommerce.model.EcommerceOrder;
-import com.lk.vau.it.project.ecommerce.repository.EcommerceOrderRepository;
+import com.lk.vau.it.project.ecommerce.service.EcommerceOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,37 +13,38 @@ import java.util.List;
 public class EcommerceOrderController {
 
     @Autowired
-    private EcommerceOrderRepository orderRepository;
+    private EcommerceOrderService EcommerceOrderService;
 
     @GetMapping
     public List<EcommerceOrder> getAllOrders() {
-        return orderRepository.findAll();
+        return EcommerceOrderService.getAllOrders();
     }
 
     @GetMapping("/{id}")
-    public EcommerceOrder getOrderById(@PathVariable Long id) {
-        return orderRepository.findById(id).orElse(null);
+    public ResponseEntity<EcommerceOrder> getOrderById(@PathVariable Long id) {
+        return EcommerceOrderService.getOrderById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public EcommerceOrder createOrder(@RequestBody EcommerceOrder order) {
-        return orderRepository.save(order);
+        return EcommerceOrderService.createOrder(order);
     }
 
     @PutMapping("/{id}")
-    public EcommerceOrder updateOrder(@PathVariable Long id, @RequestBody EcommerceOrder updatedOrder) {
-        return orderRepository.findById(id).map(order -> {
-            order.setOrder_id(updatedOrder.getOrder_id());
-            order.setUser_id(updatedOrder.getUser_id());
-            order.setUser_address(updatedOrder.getUser_address());
-            order.setUser_email(updatedOrder.getUser_email());
-            order.setUser_phoneNo(updatedOrder.getUser_phoneNo());
-            return orderRepository.save(order);
-        }).orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
+    public ResponseEntity<EcommerceOrder> updateOrder(@PathVariable Long id, @RequestBody EcommerceOrder order) {
+        try {
+            EcommerceOrder updated = EcommerceOrderService.updateOrder(id, order);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteOrder(@PathVariable Long id) {
-        orderRepository.deleteById(id);
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        EcommerceOrderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }

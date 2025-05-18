@@ -1,9 +1,14 @@
 package com.lk.vau.it.project.ecommerce.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity(name = "Orders")
 public class EcommerceOrder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String order_id;
     private String user_id;
     private String user_address;
