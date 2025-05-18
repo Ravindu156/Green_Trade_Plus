@@ -10,9 +10,7 @@ import {
   Button,
 } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
-
-const sizes = ['XS', 'S', 'M', 'L', 'XL'];
-const colors = ['red', 'green', 'blue', 'black', 'white','yellow'];
+import { Picker } from '@react-native-picker/picker';
 
 export default function SellersForm() {
   const [productName, setProductName] = useState('');
@@ -20,45 +18,17 @@ export default function SellersForm() {
   const [sizeChart, setSizeChart] = useState(null);
   const [sizeDetails, setSizeDetails] = useState({});
   const [description, setDescription] = useState('');
+  const [stock, setStock] = useState('');
+  const [unitPrice, setUnitPrice] = useState('');
+  const [color, setColor] = useState('Red');
+  const [category, setCategory] = useState('Clothing');
+  const [size, setSize] = useState('M');
 
   const handleImagePick = (setter) => {
     ImagePicker.launchImageLibrary({ mediaType: 'photo' }, (response) => {
       if (response.assets && response.assets.length > 0) {
         setter(response.assets[0]);
       }
-    });
-  };
-
-  const toggleSize = (size) => {
-    setSizeDetails((prev) => {
-      const updated = { ...prev };
-      if (updated[size]) {
-        delete updated[size]; // remove if already selected
-      } else {
-        updated[size] = { stock: '', price: '', colors: [] };
-      }
-      return updated;
-    });
-  };
-
-  const updateSizeField = (size, field, value) => {
-    setSizeDetails((prev) => ({
-      ...prev,
-      [size]: { ...prev[size], [field]: value },
-    }));
-  };
-
-  const toggleColorForSize = (size, color) => {
-    setSizeDetails((prev) => {
-      const currentColors = prev[size].colors;
-      const newColors = currentColors.includes(color)
-        ? currentColors.filter((c) => c !== color)
-        : [...currentColors, color];
-
-      return {
-        ...prev,
-        [size]: { ...prev[size], colors: newColors },
-      };
     });
   };
 
@@ -69,6 +39,11 @@ export default function SellersForm() {
       sizeChart,
       sizeDetails,
       description,
+      stock,
+      unitPrice,
+      color,
+      category,
+      size,
     };
     console.log('Submitted data:', formData);
     alert('Product submitted! Check console for data.');
@@ -86,61 +61,61 @@ export default function SellersForm() {
         placeholder="Enter product name"
       />
 
+      <Text style={styles.label}>Category</Text>
+      <Picker
+        selectedValue={category}
+        style={styles.input}
+        onValueChange={(itemValue) => setCategory(itemValue)}>
+        <Picker.Item label="Plastic Boxes" value="Plastic Boxes" />
+        <Picker.Item label="Steel Boxes" value="Steel Boxes" />
+        <Picker.Item label="Wooden Boxes" value="Wooden Boxes" />
+      </Picker>
+
+      <Text style={styles.label}>No of Stocks</Text>
+      <TextInput
+        style={styles.input}
+        value={stock}
+        onChangeText={setStock}
+        placeholder="Enter total stocks"
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Unit Price</Text>
+      <TextInput
+        style={styles.input}
+        value={unitPrice}
+        onChangeText={setUnitPrice}
+        placeholder="Enter unit price"
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Color</Text>
+      <Picker
+        selectedValue={color}
+        style={styles.input}
+        onValueChange={(itemValue) => setColor(itemValue)}>
+        <Picker.Item label="Red" value="Red" />
+        <Picker.Item label="Blue" value="Blue" />
+        <Picker.Item label="Green" value="Green" />
+        <Picker.Item label="Black" value="Black" />
+        <Picker.Item label="White" value="White" />
+      </Picker>
+
+      <Text style={styles.label}>Size</Text>
+      <Picker
+        selectedValue={size}
+        style={styles.input}
+        onValueChange={(itemValue) => setSize(itemValue)}>
+        <Picker.Item label="XS" value="XS" />
+        <Picker.Item label="S" value="S" />
+        <Picker.Item label="M" value="M" />
+        <Picker.Item label="L" value="L" />
+        <Picker.Item label="XL" value="XL" />
+      </Picker>
+
       <Text style={styles.label}>Upload Product Photo</Text>
       <Button title="Choose Product Image" onPress={() => handleImagePick(setProductPhoto)} />
       {productPhoto && <Image source={{ uri: productPhoto.uri }} style={styles.image} />}
-
-      <Text style={styles.label}>Available Sizes</Text>
-      <View style={styles.sizeContainer}>
-        {sizes.map((size) => (
-          <TouchableOpacity
-            key={size}
-            style={[
-              styles.sizeBox,
-              sizeDetails[size] && styles.selectedSizeBox,
-            ]}
-            onPress={() => toggleSize(size)}
-          >
-            <Text style={styles.sizeText}>{size}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {Object.keys(sizeDetails).map((size) => (
-        <View key={size} style={styles.sizeInputBlock}>
-          <Text style={styles.subTitle}>Details for size {size}</Text>
-          <View style={styles.sizeInputRow}>
-            <TextInput
-              placeholder="Stock"
-              keyboardType="numeric"
-              style={styles.smallInput}
-              value={sizeDetails[size].stock}
-              onChangeText={(text) => updateSizeField(size, 'stock', text)}
-            />
-            <TextInput
-              placeholder="Price"
-              keyboardType="numeric"
-              style={styles.smallInput}
-              value={sizeDetails[size].price}
-              onChangeText={(text) => updateSizeField(size, 'price', text)}
-            />
-          </View>
-          <Text style={{ marginTop: 5 }}>Select Colors:</Text>
-          <View style={styles.colorContainer}>
-            {colors.map((color) => (
-              <TouchableOpacity
-                key={color}
-                style={[
-                  styles.colorBox,
-                  { backgroundColor: color },
-                  sizeDetails[size].colors.includes(color) && styles.selectedColorBox,
-                ]}
-                onPress={() => toggleColorForSize(size, color)}
-              />
-            ))}
-          </View>
-        </View>
-      ))}
 
       <Text style={styles.label}>Description</Text>
       <TextInput
@@ -183,68 +158,6 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 10,
     borderRadius: 8,
-  },
-  sizeContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginVertical: 10,
-  },
-  sizeBox: {
-    borderWidth: 1,
-    borderColor: '#888',
-    borderRadius: 6,
-    padding: 10,
-    margin: 5,
-    width: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedSizeBox: {
-    backgroundColor: '#d0e8ff',
-    borderColor: '#007aff',
-  },
-  sizeText: { fontWeight: '600' },
-  sizeInputBlock: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 15,
-    backgroundColor: '#f9f9f9',
-  },
-  subTitle: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  sizeInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    gap: 5,
-  },
-  smallInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 6,
-    width: 70,
-    marginRight: 10,
-    borderRadius: 4,
-  },
-  colorContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 5,
-  },
-  colorBox: {
-    width: 40,
-    height: 40,
-    margin: 5,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  selectedColorBox: {
-    borderColor: '#000',
   },
   submitButton: {
     backgroundColor: '#28a745',
