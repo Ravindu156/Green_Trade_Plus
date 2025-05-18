@@ -1,7 +1,7 @@
 package com.lk.vau.it.project.ecommerce.controller;
 
 import com.lk.vau.it.project.ecommerce.model.EcommerceItem;
-import com.lk.vau.it.project.ecommerce.repository.ItemRepository;
+import com.lk.vau.it.project.ecommerce.repository.EcommerceItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +12,7 @@ import java.util.List;
 public class EcommerceItemController {
 
     @Autowired
-    private ItemRepository itemRepository;
+    private EcommerceItemRepository itemRepository;
 
     @GetMapping
     public List<EcommerceItem> getAllItems() {
