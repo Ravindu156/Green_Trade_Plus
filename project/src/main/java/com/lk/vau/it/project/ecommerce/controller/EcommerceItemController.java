@@ -1,6 +1,6 @@
 package com.lk.vau.it.project.ecommerce.controller;
 
-import com.lk.vau.it.project.ecommerce.model.Item;
+import com.lk.vau.it.project.ecommerce.model.EcommerceItem;
 import com.lk.vau.it.project.ecommerce.repository.ItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -9,28 +9,28 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/items")
-public class ItemController {
+public class EcommerceItemController {
 
     @Autowired
     private ItemRepository itemRepository;
 
     @GetMapping
-    public List<Item> getAllItems() {
+    public List<EcommerceItem> getAllItems() {
         return itemRepository.findAll();
     }
 
     @GetMapping("/{id}")
-    public Item getItemById(@PathVariable Long id) {
+    public EcommerceItem getItemById(@PathVariable Long id) {
         return itemRepository.findById(id).orElse(null);
     }
 
     @PostMapping
-    public Item createItem(@RequestBody Item item) {
+    public EcommerceItem createItem(@RequestBody EcommerceItem item) {
         return itemRepository.save(item);
     }
 
     @PutMapping("/{id}")
-    public Item updateItem(@PathVariable Long id, @RequestBody Item updatedItem) {
+    public EcommerceItem updateItem(@PathVariable Long id, @RequestBody EcommerceItem updatedItem) {
         return itemRepository.findById(id).map(item -> {
             item.setItem_name(updatedItem.getItem_name());
             item.setPrice(updatedItem.getPrice());

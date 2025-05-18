@@ -12,7 +12,7 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Lob;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Item {
+public class EcommerceItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long item_id;
@@ -20,8 +20,9 @@ public class Item {
 
     @Lob
     private byte[] image;
-
-    private String size;
+    private String category;
+    private int stock;
+    private char size;
     private String color;
 
     @Column(precision = 10, scale = 2)
@@ -51,14 +52,6 @@ public class Item {
         this.image = image;
     }
 
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
     public String getColor() {
         return color;
     }
@@ -73,6 +66,30 @@ public class Item {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public char getSize() {
+        return size;
+    }
+
+    public void setSize(char size) {
+        this.size = size;
     }
 
     
