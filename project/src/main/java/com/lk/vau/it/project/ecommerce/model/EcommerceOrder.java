@@ -5,26 +5,26 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
-@Entity(name = "Orders")
+@Entity
 public class EcommerceOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String order_id;
-    private String user_id;
+    private Long order_id;
+    private Long user_id;
     private String user_address;
     private String user_email;
     private String user_phoneNo;
     
-    public String getOrder_id() {
+    public Long getOrder_id() {
         return order_id;
     }
-    public void setOrder_id(String order_id) {
+    public void setOrder_id(Long order_id) {
         this.order_id = order_id;
     }
-    public String getUser_id() {
+    public Long getUser_id() {
         return user_id;
     }
-    public void setUser_id(String user_id) {
+    public void setUser_id(Long user_id) {
         this.user_id = user_id;
     }
     public String getUser_address() {
