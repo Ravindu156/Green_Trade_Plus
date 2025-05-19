@@ -2,6 +2,8 @@ package com.lk.vau.it.project.trade.dto;
 
 import java.time.LocalDateTime;
 
+import com.lk.vau.it.project.trade.model.User;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -9,7 +11,7 @@ import jakarta.validation.constraints.Positive;
 public class TradeItemDto {
     private Long id;
 
-    private Long userId;
+    private User user;
 
     @NotBlank(message = "Category is required")
     private String category;
@@ -36,8 +38,8 @@ public class TradeItemDto {
     }
     
     // Constructor with fields
-    public TradeItemDto(Long userId, String category, String name, Double quantity, String unit, Boolean isOrganic, String description) {
-        this.userId = userId;
+    public TradeItemDto(User user, String category, String name, Double quantity, String unit, Boolean isOrganic, String description) {
+        this.user = user;
         this.category = category;
         this.name = name;
         this.quantity = quantity;
@@ -48,9 +50,9 @@ public class TradeItemDto {
     }
     
     // Constructor for mapping from entity
-    public TradeItemDto(Long id, Long userId, String category, String name, Double quantity, String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+    public TradeItemDto(Long id, User user, String category, String name, Double quantity, String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
         this.id = id;
-        this.userId = userId;
+        this.user = user;
         this.category = category;
         this.name = name;
         this.quantity = quantity;
@@ -69,12 +71,12 @@ public class TradeItemDto {
         this.id = id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
     
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUserId(User user) {
+        this.user = user;
     }
     
     public String getCategory() {

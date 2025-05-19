@@ -27,7 +27,7 @@ const AddNewItemScreen = ({ navigation }) => {
   const [unit, setUnit] = useState('kg');
   const [isOrganic, setIsOrganic] = useState(true);
   const [description, setDescription] = useState('');
-  
+
   // Dropdown state
   const [showItemDropdown, setShowItemDropdown] = useState(false);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -79,7 +79,7 @@ const AddNewItemScreen = ({ navigation }) => {
   // Filter items based on user input
   const filterItems = (text) => {
     const categoryItems = itemsByCategory[category] || [];
-    
+
     if (text === '') {
       setFilteredItems(categoryItems);
     } else {
@@ -88,7 +88,7 @@ const AddNewItemScreen = ({ navigation }) => {
       );
       setFilteredItems(filtered);
     }
-    
+
     setShowItemDropdown(true);
   };
 
@@ -153,7 +153,9 @@ const AddNewItemScreen = ({ navigation }) => {
     if (validateForm()) {
       setIsSubmitting(true);
       const newItem = {
-        userId:userId,
+        user: {
+          id: userId
+        },
         category,
         name,
         quantity: Number(quantity),
@@ -279,21 +281,21 @@ const AddNewItemScreen = ({ navigation }) => {
                     setTimeout(() => setShowItemDropdown(false), 200);
                   }}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.dropdownIcon}
                   onPress={() => {
                     setShowItemDropdown(!showItemDropdown);
                     filterItems(name);
                   }}
                 >
-                  <Ionicons 
-                    name={showItemDropdown ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={COLORS.textDark} 
+                  <Ionicons
+                    name={showItemDropdown ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color={COLORS.textDark}
                   />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Dropdown List */}
               {showItemDropdown && filteredItems.length > 0 && (
                 <View style={styles.dropdown}>
@@ -314,7 +316,7 @@ const AddNewItemScreen = ({ navigation }) => {
                   />
                 </View>
               )}
-              
+
               {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
             </View>
 
