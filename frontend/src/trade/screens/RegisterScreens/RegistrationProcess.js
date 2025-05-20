@@ -329,7 +329,8 @@ const RegistrationProcess = ({ navigation }) => {
         {renderStep()}
       </View>
       
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+      {/* This is the problem line - we'll remove the ref */}
+      <Toast />
     </SafeAreaView>
   );
 };
