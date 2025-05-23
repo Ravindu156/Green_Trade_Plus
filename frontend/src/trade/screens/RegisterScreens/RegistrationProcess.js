@@ -226,7 +226,7 @@ const RegistrationProcess = ({ navigation }) => {
       // Debug log: Use for development only
       console.log('Submitting data:', JSON.stringify(Array.from(submitData.entries())));
   
-      const response = await fetch('http://192.168.8.162:8080/api/auth/register', {
+      const response = await fetch('http://192.168.1.227:8080/api/auth/register', { //ip address  should be replace with you IPV4 address(ipconfig)
         method: 'POST',
         body: submitData,
         // Note: Do NOT set Content-Type here, let FormData handle it
