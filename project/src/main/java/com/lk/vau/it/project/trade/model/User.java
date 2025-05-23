@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.lk.vau.it.project.academy.model.AcademyCourse;
 
 @Entity
 @Table(name = "users")
@@ -18,6 +19,10 @@ public class User {
     @OneToMany(mappedBy = "user")
     @JsonManagedReference
     private List<TradeItem> tradeItems;;
+
+    @OneToMany(mappedBy = "tutor")
+    @JsonManagedReference
+    private List<AcademyCourse> academyCourses;;
 
     @Column(nullable = false)
     private String role; // userType in frontend
@@ -101,6 +106,14 @@ public class User {
 
     public void setTradeItems(List<TradeItem> tradeItems) {
         this.tradeItems = tradeItems;
+    }
+
+    public List<AcademyCourse> getAcademyCourses() {
+        return academyCourses;
+    }
+
+    public void setAcademyCourses(List<AcademyCourse> academyCourses) {
+        this.academyCourses = academyCourses;
     }
 
     public String getRole() {
