@@ -1,11 +1,15 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import Home from '../screens/Home';
-import Certificates from '../screens/Cerificates'
-import Profile from '../screens/Profile'
+import Certificates from '../screens/Cerificates';
+import Profile from '../screens/Profile';
+import AddNewCourseScreen from '../screens/AddNewCourseScreen'; // Import your new screen
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 const BottomTabNavigator = () => {
   return (
@@ -60,4 +64,21 @@ const BottomTabNavigator = () => {
   );
 };
 
-export default BottomTabNavigator;
+const AppNavigator = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="MainTabs" 
+        component={BottomTabNavigator} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="AddNewCourseScreen" 
+        component={AddNewCourseScreen} 
+        options={{ headerShown: false }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+export default AppNavigator;
