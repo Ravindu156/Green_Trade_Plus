@@ -1,11 +1,13 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { API_URL } = Constants.expoConfig.extra;
 
   useEffect(() => {
     // Check if user is logged in
@@ -31,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (usernameOrPhone, password) => {
     try {
-      const response = await fetch('http://192.168.1.227:8080/api/auth/login', {
+      const response = await fetch(`http://${API_URL}:8080/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

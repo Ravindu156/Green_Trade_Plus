@@ -14,6 +14,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons'; // Make sure to install expo icons
+import Constants from 'expo-constants';
 
 const TodayMarketScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -30,6 +31,7 @@ const TodayMarketScreen = ({ route }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const { API_URL } = Constants.expoConfig.extra;
 
   const imageMap = {
     Apple: require('../../../assets/TradeItems/Apple.jpg'),
@@ -64,7 +66,7 @@ const TodayMarketScreen = ({ route }) => {
   const fetchMarketItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/admin/price-settings');
+      const response = await fetch(`http://${API_URL}:8080/api/admin/price-settings`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch market items');

@@ -12,10 +12,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../constants/colors';
+import Constants from 'expo-constants';
 
 const FarmerProfileScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { API_URL } = Constants.expoConfig.extra;
   console.log("Hello User Data", userData);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const FarmerProfileScreen = ({ navigation }) => {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: `http://localhost:8080/api/auth/profile-photos/${userData.profilePhoto}` }}
+              source={{ uri: `http://${API_URL}:8080/api/auth/profile-photos/${userData.profilePhoto}` }}
               style={styles.profileImage}
             />
           </View>

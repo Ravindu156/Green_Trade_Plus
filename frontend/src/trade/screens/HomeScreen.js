@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
+import Constants from 'expo-constants';
 
 // Enhanced green color palette with better visibility
 const COLORS = {
@@ -32,8 +33,8 @@ const HomeScreen = () => {
     const [firstName, setFirstName] = useState();
     const [profilePhoto, setProfilePhoto] = useState();
     const navigation = useNavigation();
-
-
+    const { API_URL } = Constants.expoConfig.extra;
+    
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -46,7 +47,7 @@ const HomeScreen = () => {
     
                     console.log("userid", userId);
     
-                    const res = await fetch(`http://localhost:8080/api/auth/${userId}/basic-info`, {
+                    const res = await fetch(`http://${API_URL}:8080/api/auth/${userId}/basic-info`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
@@ -137,7 +138,7 @@ const HomeScreen = () => {
                             onPress={() => navigation.navigate('Profile')}
                         >
                             <Image
-                               source={{ uri: `http://localhost:8080/api/auth/profile-photos/${profilePhoto}` }}
+                               source={{ uri: `http://${API_URL}:8080/api/auth/profile-photos/${profilePhoto}` }}
                                 style={styles.profilePic}
                             />
                         </TouchableOpacity>

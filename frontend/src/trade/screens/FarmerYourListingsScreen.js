@@ -17,6 +17,7 @@ import { Ionicons, MaterialCommunityIcons, AntDesign } from '@expo/vector-icons'
 import { COLORS } from '../constants/colors';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 const FarmerYourListings = ({ navigation }) => {
   const [items, setItems] = useState([]);
@@ -35,6 +36,7 @@ const FarmerYourListings = ({ navigation }) => {
 
   // List of categories fetched from items
   const [categories, setCategories] = useState([]);
+  const { API_URL } = Constants.expoConfig.extra;
 
   useEffect(() => {
     fetchItems();
@@ -51,7 +53,7 @@ const FarmerYourListings = ({ navigation }) => {
      const userId = user.id;
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:8080/api/trade-items/user/${userId}`);
+      const response = await axios.get(`http://${API_URL}:8080/api/trade-items/user/${userId}`);
       setItems(response.data);
 
       // Extract unique categories

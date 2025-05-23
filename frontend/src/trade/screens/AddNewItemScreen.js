@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { COLORS } from '../constants/colors';
+import Constants from 'expo-constants';
 
 const AddNewItemScreen = ({ navigation }) => {
   // Form state
@@ -27,6 +28,7 @@ const AddNewItemScreen = ({ navigation }) => {
   const [unit, setUnit] = useState('kg');
   const [isOrganic, setIsOrganic] = useState(true);
   const [description, setDescription] = useState('');
+  const { API_URL } = Constants.expoConfig.extra;
 
   // Dropdown state
   const [showItemDropdown, setShowItemDropdown] = useState(false);
@@ -167,7 +169,7 @@ const AddNewItemScreen = ({ navigation }) => {
 
       try {
         // Make POST request to backend
-        const response = await axios.post('http://localhost:8080/api/trade-items', newItem);
+        const response = await axios.post(`http://${API_URL}:8080/api/trade-items`, newItem);
 
         if (response.status === 201 || response.status === 200) {
           // Show success modal instead of Alert

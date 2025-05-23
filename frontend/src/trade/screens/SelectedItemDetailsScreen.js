@@ -16,6 +16,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 const SelectedItemDetailsScreen = ({ route }) => {
     const navigation = useNavigation();
@@ -32,6 +33,8 @@ const SelectedItemDetailsScreen = ({ route }) => {
     const [selectedTradeItem, setSelectedTradeItem] = useState(null);
     const [bidAmount, setBidAmount] = useState("");
     const [currentUserId, setCurrentUserId] = useState(1); // Assuming logged in user ID is 1
+    const { API_URL } = Constants.expoConfig.extra;
+    
 
   const fallbackImage = require('../../../assets/TradeItems/Vegetables.jpg');
 
@@ -43,25 +46,28 @@ const SelectedItemDetailsScreen = ({ route }) => {
         const userData = await AsyncStorage.getItem('user');
         const user = JSON.parse(userData);
         const UserId = user.id;
+        console.log("UserIDENTITY",UserId);
+        
         setCurrentUserId(UserId)
         setLoading(true);
         setError(null);
         try {
             // 1. Fetch trade items for this particular item
-            const response = await fetch(`http://localhost:8080/api/trade-items`);
+            const response = await fetch(`http://${API_URL}:8080/api/trade-items`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch trade items');
             }
 
             const data = await response.json();
-
+            console.log("dataa",data);
+            
             // Filter the items by name to match the selected item
             const filteredItems = data.filter(tradeItem => tradeItem.name === item.name);
             setTradeItems(filteredItems);
 
             // 2. Fetch farmer details for each trade item
-            const farmerPromises = filteredItems.map(tradeItem => fetchFarmerInfo(tradeItem.userId));
+            const farmerPromises = filteredItems.map(tradeItem => fetchFarmerInfo(tradeItem.user.id));
             await Promise.all(farmerPromises);
 
             // 3. Fetch max bids for each trade item
@@ -79,8 +85,9 @@ const SelectedItemDetailsScreen = ({ route }) => {
 
     const fetchFarmerInfo = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/auth/${userId}/basic-info`);
-
+            const response = await fetch(`http://${API_URL}:8080/api/auth/${userId}/basic-info`);
+            console.log(`http://${API_URL}:8080/api/auth/${userId}/basic-info`);
+            
             if (!response.ok) {
                 throw new Error(`Failed to fetch farmer info for user ${userId}`);
             }
@@ -105,7 +112,7 @@ const SelectedItemDetailsScreen = ({ route }) => {
 
     const fetchMaxBid = async (itemId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/item-bids/${itemId}/max`);
+            const response = await fetch(`http://${API_URL}:8080/api/item-bids/${itemId}/max`);
 
             if (!response.ok) {
                 throw new Error(`Failed to fetch max bid for item ${itemId}`);
@@ -174,7 +181,7 @@ const SelectedItemDetailsScreen = ({ route }) => {
     };
 
     const renderTradeItem = ({ item: tradeItem, index }) => {
-        const farmer = farmers[tradeItem.userId] || { userName: "Loading...", firstName: "Loading..." };
+        const farmer = farmers[tradeItem.user.id] || { userName: "Loading...", firstName: "Loading..." };
 
         return (
             <View style={styles.tableRow}>
