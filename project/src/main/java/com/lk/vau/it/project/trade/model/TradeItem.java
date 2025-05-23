@@ -2,6 +2,7 @@ package com.lk.vau.it.project.trade.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -16,6 +17,9 @@ public class TradeItem {
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @OneToMany(mappedBy = "item")
+    private List<ItemBid> itemBids;
 
     @Column(nullable = false)
     private String category;

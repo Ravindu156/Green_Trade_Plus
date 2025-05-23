@@ -24,6 +24,10 @@ public class User {
     @JsonManagedReference
     private List<AcademyCourse> academyCourses;;
 
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private List<ItemBid> itemBids;
+
     @Column(nullable = false)
     private String role; // userType in frontend
 
@@ -114,6 +118,14 @@ public class User {
 
     public void setAcademyCourses(List<AcademyCourse> academyCourses) {
         this.academyCourses = academyCourses;
+    }
+
+    public List<ItemBid> getItemBid() {
+        return itemBids;
+    }
+
+    public void setItemBid(List<ItemBid> itemBids) {
+        this.itemBids = itemBids;
     }
 
     public String getRole() {
