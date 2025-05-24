@@ -67,7 +67,7 @@ const Profile = () => {
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcomeText}>Hello,</Text>
             <Title style={styles.name}>{user?.userName || 'User'}</Title>
-            <Text style={styles.roleTag}>{isTutor ? 'Tutor' : 'Student'}</Text>
+            <Text style={styles.roleTag}>{isTutor ? 'Tutor' : user.role}</Text>
           </View>
         </View>
       </Card>

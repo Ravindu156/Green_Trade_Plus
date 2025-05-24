@@ -17,6 +17,7 @@ import { COLORS } from '../constants/colors';
 import FarmerYourListingsScreen from '../screens/FarmerYourListingsScreen';
 import SelectedItemDetailsScreen from '../screens/SelectedItemDetailsScreen';
 import AddNewCourseScreen from '../../academy/screens/AddNewCourseScreen';
+import Profile from '../../academy/screens/Profile';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator();
@@ -85,7 +86,7 @@ const ProfileStackScreen = () => {
 
       {userRole === 'tutor' && (
         <>
-          {/* <ProfileStack.Screen name="AddNewCourseScreen" component={AddNewCourseScreen} />  */}
+          <ProfileStack.Screen name="Profile" component={Profile} />
           
         </>
       )} 
