@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import { COLORS } from '../constants/colors';
 import Toast from 'react-native-toast-message';
+import Constant from 'expo-constants';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const {API_URL} = Constants.expoConfig.extra;
   
   const showToast = (type, title, message) => {
     Toast.show({
@@ -37,7 +39,7 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
+      const response = await fetch(`http://${API_URL}:8080/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

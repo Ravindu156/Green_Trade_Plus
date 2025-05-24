@@ -77,9 +77,9 @@ const ProfileStackScreen = () => {
         </>
       )}
 
-      {userRole === 'seller' && (
+      {userRole === 'buyer' && (
         <>
-          {/* <ProfileStack.Screen name="SellerProfile" component={ProfileScreen} /> */}
+          <ProfileStack.Screen name="SellerProfile" component={BuyerProfileScreen} />
           {/* Add seller-specific screens here */}
         </>
       )}
@@ -98,7 +98,7 @@ const ProfileStackScreen = () => {
         </>
       )}
 
-      {!['farmer', 'seller', 'admin'].includes(userRole) && (
+      {!['farmer', 'buyer', 'admin'].includes(userRole) && (
         <ProfileStack.Screen name="DefaultProfile" component={ProfileScreen} />
       )}
     </ProfileStack.Navigator>

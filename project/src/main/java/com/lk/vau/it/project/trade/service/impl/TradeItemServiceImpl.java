@@ -41,7 +41,7 @@ public class TradeItemServiceImpl implements TradeItemService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + itemDto.getUser().getId()));
         
         TradeItem item = convertToEntity(itemDto);
-        item.setUser(user);
+        item.setFarmer(user);
         // Remove explicit dateAdded setting since @PrePersist handles it
         
         TradeItem savedItem = itemRepository.save(item);
@@ -68,7 +68,7 @@ public class TradeItemServiceImpl implements TradeItemService {
     @Transactional(readOnly = true)
     public List<TradeItemDto> getItemsByUserId(Long userId) {
         // Fixed: Use proper method name (assuming repository method exists)
-        return itemRepository.findByUserId(userId).stream()
+        return itemRepository.findByFarmerId(userId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -98,7 +98,7 @@ public class TradeItemServiceImpl implements TradeItemService {
         if (itemDto.getUser() != null && itemDto.getUser().getId() != null) {
             User user = userRepository.findById(itemDto.getUser().getId())
                     .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + itemDto.getUser().getId()));
-            existingItem.setUser(user);
+            existingItem.setFarmer(user);
         }
 
         // Update other fields
@@ -139,7 +139,7 @@ public class TradeItemServiceImpl implements TradeItemService {
     private TradeItemDto convertToDTO(TradeItem item) {
         return new TradeItemDto(
                 item.getId(),
-                item.getUser(),
+                item.getFarmer(),
                 item.getCategory(),
                 item.getName(),
                 item.getQuantity(),

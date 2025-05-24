@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import Toast from 'react-native-toast-message';
+import Constants from 'expo-constants';
 
 // Import all step screens
 import UserTypeScreen from './UserTypeScreen';
@@ -41,6 +42,7 @@ const RegistrationProcess = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   // State for submission status
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { API_URL } = Constants.expoConfig.extra;
 
   // Function to update form data
   const updateFormData = (data) => {
@@ -226,7 +228,7 @@ const RegistrationProcess = ({ navigation }) => {
       // Debug log: Use for development only
       console.log('Submitting data:', JSON.stringify(Array.from(submitData.entries())));
   
-      const response = await fetch('http://192.168.1.227:8080/api/auth/register', { //ip address  should be replace with you IPV4 address(ipconfig)
+      const response = await fetch(`http://${API_URL}:8080/api/auth/register`, { //ip address  should be replace with you IPV4 address(ipconfig)
         method: 'POST',
         body: submitData,
         // Note: Do NOT set Content-Type here, let FormData handle it

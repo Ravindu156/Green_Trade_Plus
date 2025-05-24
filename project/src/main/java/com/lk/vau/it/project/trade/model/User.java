@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.lk.vau.it.project.academy.model.AcademyCourse;
 
 @Entity
 @Table(name = "users")
@@ -15,9 +16,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "user")
-    @JsonManagedReference
+    @OneToMany(mappedBy = "farmer")
+    @JsonManagedReference("farmer-tradeitem")
     private List<TradeItem> tradeItems;;
+
+    @OneToMany(mappedBy = "tutor")
+    @JsonManagedReference("tutor-course")
+    private List<AcademyCourse> academyCourses;;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference("user-bid")
+    private List<ItemBid> itemBids;
 
     @Column(nullable = false)
     private String role; // userType in frontend
@@ -101,6 +110,22 @@ public class User {
 
     public void setTradeItems(List<TradeItem> tradeItems) {
         this.tradeItems = tradeItems;
+    }
+
+    public List<AcademyCourse> getAcademyCourses() {
+        return academyCourses;
+    }
+
+    public void setAcademyCourses(List<AcademyCourse> academyCourses) {
+        this.academyCourses = academyCourses;
+    }
+
+    public List<ItemBid> getItemBid() {
+        return itemBids;
+    }
+
+    public void setItemBid(List<ItemBid> itemBids) {
+        this.itemBids = itemBids;
     }
 
     public String getRole() {
