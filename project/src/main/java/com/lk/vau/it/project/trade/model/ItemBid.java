@@ -25,7 +25,7 @@ public class ItemBid {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("user-bid")
     private User user;
 
     @Column(nullable = false)

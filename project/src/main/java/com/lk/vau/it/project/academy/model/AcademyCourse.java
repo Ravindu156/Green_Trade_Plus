@@ -3,6 +3,7 @@ package com.lk.vau.it.project.academy.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lk.vau.it.project.trade.model.User;
 
 import jakarta.persistence.Column;
@@ -41,6 +42,7 @@ public class AcademyCourse {
     
     @ManyToOne
     @JoinColumn(name = "tutor_id", nullable = false)
+    @JsonBackReference("tutor-course")
     private User tutor;
     
     @Column(nullable = false)

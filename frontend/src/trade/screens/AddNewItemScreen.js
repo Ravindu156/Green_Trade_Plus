@@ -166,11 +166,12 @@ const AddNewItemScreen = ({ navigation }) => {
         description,
         dateAdded: new Date().toISOString(),
       };
-
+      console.log("New ITEM",newItem);
       try {
         // Make POST request to backend
         const response = await axios.post(`http://${API_URL}:8080/api/trade-items`, newItem);
-
+        
+        
         if (response.status === 201 || response.status === 200) {
           // Show success modal instead of Alert
           setSuccessModalVisible(true);

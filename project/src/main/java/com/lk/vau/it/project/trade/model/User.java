@@ -16,16 +16,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "user")
-    @JsonManagedReference
+    @OneToMany(mappedBy = "farmer")
+    @JsonManagedReference("farmer-tradeitem")
     private List<TradeItem> tradeItems;;
 
     @OneToMany(mappedBy = "tutor")
-    @JsonManagedReference
+    @JsonManagedReference("tutor-course")
     private List<AcademyCourse> academyCourses;;
 
     @OneToMany(mappedBy = "user")
-    @JsonManagedReference
+    @JsonManagedReference("user-bid")
     private List<ItemBid> itemBids;
 
     @Column(nullable = false)

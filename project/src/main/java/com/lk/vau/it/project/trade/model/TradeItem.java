@@ -15,8 +15,8 @@ public class TradeItem {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonBackReference
-    private User user;
+    @JsonBackReference("farmer-tradeitem")
+    private User farmer;
 
     @OneToMany(mappedBy = "item")
     private List<ItemBid> itemBids;
@@ -45,10 +45,61 @@ public class TradeItem {
     public TradeItem() {
     }
 
-    // Constructor with fields
-    public TradeItem(User user, String category, String name, Double quantity, String unit, Boolean isOrganic,
-            String description, LocalDateTime dateAdded) {
-        this.user = user;
+    // Constructor with all fields except id (for new entities)
+    public TradeItem(User farmer, List<ItemBid> itemBids, String category, String name, Double quantity, 
+                     String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+        this.farmer = farmer;
+        this.itemBids = itemBids;
+        this.category = category;
+        this.name = name;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.isOrganic = isOrganic;
+        this.description = description;
+        this.dateAdded = dateAdded;
+    }
+
+    // Constructor with required fields only
+    public TradeItem(User farmer, String category, String name, Double quantity, String unit, Boolean isOrganic) {
+        this.farmer = farmer;
+        this.category = category;
+        this.name = name;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.isOrganic = isOrganic;
+    }
+
+    // Constructor with required fields and description
+    public TradeItem(User farmer, String category, String name, Double quantity, String unit, Boolean isOrganic,
+                     String description) {
+        this.farmer = farmer;
+        this.category = category;
+        this.name = name;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.isOrganic = isOrganic;
+        this.description = description;
+    }
+
+    // Constructor with required fields, description, and dateAdded
+    public TradeItem(User farmer, String category, String name, Double quantity, String unit, Boolean isOrganic,
+                     String description, LocalDateTime dateAdded) {
+        this.farmer = farmer;
+        this.category = category;
+        this.name = name;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.isOrganic = isOrganic;
+        this.description = description;
+        this.dateAdded = dateAdded;
+    }
+
+    // Constructor with all fields including id (for existing entities)
+    public TradeItem(Long id, User farmer, List<ItemBid> itemBids, String category, String name, Double quantity,
+                     String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+        this.id = id;
+        this.farmer = farmer;
+        this.itemBids = itemBids;
         this.category = category;
         this.name = name;
         this.quantity = quantity;
@@ -74,12 +125,20 @@ public class TradeItem {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public User getFarmer() {
+        return farmer;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setFarmer(User farmer) {
+        this.farmer = farmer;
+    }
+
+    public List<ItemBid> getItemBids() {
+        return itemBids;
+    }
+
+    public void setItemBids(List<ItemBid> itemBids) {
+        this.itemBids = itemBids;
     }
 
     public String getCategory() {
@@ -142,7 +201,8 @@ public class TradeItem {
     public String toString() {
         return "TradeItem{" +
                 "id=" + id +
-                ", user=" + (user != null ? user.getId() : null) +
+                ", user=" + (farmer != null ? farmer.getId() : null) +
+                ", itemBids=" + (itemBids != null ? itemBids.size() + " bids" : "no bids") +
                 ", category='" + category + '\'' +
                 ", name='" + name + '\'' +
                 ", quantity=" + quantity +
