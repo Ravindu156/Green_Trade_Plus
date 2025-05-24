@@ -31,8 +31,8 @@ const AddNewCourseScreen = () => {
   const [courseTitle, setCourseTitle] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
   const [courseFees, setCourseFees] = useState('');
-  const [courseVideo, setCourseVideo] = useState('');
-  const [courseThumbnail, setCourseThumbnail] = useState(null); // New state for thumbnail
+  const [courseVideo, setCourseVideo] = useState(null); // Changed to file object
+  const [courseThumbnail, setCourseThumbnail] = useState(null);
   
   // Checkbox states
   const [suitableFor, setSuitableFor] = useState({
@@ -61,8 +61,8 @@ const AddNewCourseScreen = () => {
       newErrors.courseFees = 'Please enter a valid amount';
     }
     
-    if (!courseVideo.trim()) {
-      newErrors.courseVideo = 'Course video URL is required';
+    if (!courseVideo) {
+      newErrors.courseVideo = 'Course video is required';
     }
     
     if (!courseThumbnail) {
@@ -85,7 +85,7 @@ const AddNewCourseScreen = () => {
       durationLimit: 300, // 5 minutes max
       storageOptions: {
         skipBackup: true,
-        path: 'images',
+        path: 'videos',
       },
     };
 
@@ -111,7 +111,6 @@ const AddNewCourseScreen = () => {
     }
   };
 
-  // New function to handle thumbnail selection
   const handleThumbnailSelection = async () => {
     const options = {
       mediaType: 'photo',
@@ -172,29 +171,31 @@ const AddNewCourseScreen = () => {
       }
 
       const user = JSON.parse(userData);
+      const userId = user.id;
       
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('courseTitle', courseTitle.trim());
       formData.append('courseDescription', courseDescription.trim());
-      formData.append('courseFees', parseFloat(courseFees));
-      formData.append('tutorId', user.id);
+      formData.append('courseFees', courseFees.trim());
+      formData.append('tutorId', userId.toString());
       
-      // Add thumbnail to form data
+      // Add boolean values for target audience
+      formData.append('forFarmers', suitableFor.farmers.toString());
+      formData.append('forSellers', suitableFor.sellers.toString());
+      formData.append('forBuyers', suitableFor.buyers.toString());
+      
+      // Add thumbnail file
       if (courseThumbnail) {
         formData.append('courseThumbnail', courseThumbnail);
       }
       
-      // Add suitable for array
-      const suitableForArray = [];
-      if (suitableFor.farmers) suitableForArray.push('For Farmers');
-      if (suitableFor.sellers) suitableForArray.push('For Sellers');
-      if (suitableFor.buyers) suitableForArray.push('For Buyers');
-      formData.append('suitableFor', JSON.stringify(suitableForArray));
-      
-      formData.append('courseVideo', courseVideo.trim());
+      // Add video file
+      if (courseVideo) {
+        formData.append('courseVideo', courseVideo);
+      }
 
-      const response = await fetch('http://localhost:8080/api/acedemy/add-new-course', {
+      const response = await fetch('http://localhost:8080/api/academy/courses/add', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -232,8 +233,8 @@ const AddNewCourseScreen = () => {
     setCourseTitle('');
     setCourseDescription('');
     setCourseFees('');
-    setCourseVideo('');
-    setCourseThumbnail(null); // Reset thumbnail
+    setCourseVideo(null);
+    setCourseThumbnail(null);
     setSuitableFor({
       farmers: false,
       sellers: false,
@@ -357,6 +358,64 @@ const AddNewCourseScreen = () => {
             )}
           </Surface>
 
+          {/* Course Video */}
+          <Surface style={styles.inputContainer} elevation={2}>
+            <Text style={styles.labelText}>Course Video *</Text>
+            <Text style={styles.helperText}>Upload your course video file</Text>
+            
+            <TouchableOpacity 
+              onPress={handleVideoSelection}
+              style={[
+                styles.videoUploadContainer,
+                errors.courseVideo && styles.errorBorder
+              ]}
+            >
+              <View style={styles.videoUploadContent}>
+                {!courseVideo ? (
+                  <>
+                    <IconButton
+                      icon="video-plus"
+                      size={36}
+                      color="#1976d2"
+                    />
+                    <Text style={styles.videoUploadText}>
+                      Tap to upload a video file
+                    </Text>
+                    <Text style={styles.videoHelpText}>
+                      Max duration: 5 minutes
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <IconButton
+                      icon="video-check"
+                      size={36}
+                      color="#4caf50"
+                    />
+                    <Chip
+                      style={styles.successChip}
+                      textStyle={styles.successChipText}
+                      icon="check-circle"
+                      onPress={handleVideoSelection}
+                    >
+                      Video Selected (Tap to change)
+                    </Chip>
+                    <Text style={styles.fileInfoText}>
+                      {courseVideo.name}
+                    </Text>
+                    <Text style={styles.fileSizeText}>
+                      Size: {(courseVideo.size / (1024 * 1024)).toFixed(2)} MB
+                    </Text>
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+            
+            {errors.courseVideo && (
+              <Text style={styles.errorText}>{errors.courseVideo}</Text>
+            )}
+          </Surface>
+
           {/* Course Fees */}
           <Surface style={styles.inputContainer} elevation={2}>
             <Text style={styles.labelText}>Course Fees ($) *</Text>
@@ -380,31 +439,6 @@ const AddNewCourseScreen = () => {
             />
             {errors.courseFees && (
               <Text style={styles.errorText}>{errors.courseFees}</Text>
-            )}
-          </Surface>
-
-          {/* Course Video URL */}
-          <Surface style={styles.inputContainer} elevation={2}>
-            <Text style={styles.labelText}>Course Video URL *</Text>
-            <TextInput
-              mode="outlined"
-              value={courseVideo}
-              onChangeText={(text) => {
-                setCourseVideo(text);
-                setErrors(prev => ({ ...prev, courseVideo: null }));
-              }}
-              placeholder="Enter video URL (YouTube, Vimeo, etc.)"
-              style={styles.textInput}
-              theme={{
-                colors: {
-                  primary: '#1976d2',
-                  outline: errors.courseVideo ? '#d32f2f' : '#e0e0e0',
-                }
-              }}
-              left={<TextInput.Icon icon="video" color="#1976d2" />}
-            />
-            {errors.courseVideo && (
-              <Text style={styles.errorText}>{errors.courseVideo}</Text>
             )}
           </Surface>
 
@@ -566,6 +600,25 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 8,
+  },
+  videoHelpText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  fileInfoText: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  fileSizeText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 2,
   },
   successChip: {
     marginTop: 12,
