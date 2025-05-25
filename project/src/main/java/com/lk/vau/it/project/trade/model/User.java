@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.lk.vau.it.project.academy.model.AcademyCourse;
+import com.lk.vau.it.project.ecommerce.model.EcommerceItem;
 
 @Entity
 @Table(name = "users")
@@ -23,6 +24,10 @@ public class User {
     @OneToMany(mappedBy = "tutor")
     @JsonManagedReference("tutor-course")
     private List<AcademyCourse> academyCourses;;
+
+    @OneToMany(mappedBy = "seller")
+    @JsonManagedReference("seller-item")
+    private List<EcommerceItem> ecommerceItems;;
 
     @OneToMany(mappedBy = "user")
     @JsonManagedReference("user-bid")
