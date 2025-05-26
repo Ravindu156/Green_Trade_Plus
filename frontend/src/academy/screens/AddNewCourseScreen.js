@@ -244,21 +244,23 @@ if (courseVideo) {
       name: courseVideo.name,
     }
   );
+}const response = await fetch('http://localhost:8080/api/academy/courses/add', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    // Do NOT set 'Content-Type' here!
+  },
+  body: formData,
+});
+
+if (!response.ok) {
+  // Try to get error text for debugging
+  const errorText = await response.text();
+  console.error('Backend error:', errorText);
+  throw new Error(`HTTP error! status: ${response.status}`);
 }
-      const response = await fetch('http://localhost:8080/api/academy/courses/add', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // Do NOT set 'Content-Type' here!
-        },
-        body: formData,
-      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
+const result = await response.json();
       
       Alert.alert(
         'Success',
