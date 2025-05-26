@@ -222,21 +222,28 @@ const handleWebVideoChange = (event) => {
       // });
        // Add thumbnail file
    
-        if (courseThumbnail) {
-        formData.append('thumbnailFile', {
-          uri: courseThumbnail.uri,
-          type: courseThumbnail.type,
-          name: courseThumbnail.name,
-        });
-      }
-      
-      // Add video file
-      if (courseVideo) {
-  formData.append('videoFile', Platform.OS === 'web' ? courseVideo.file : {
-    uri: courseVideo.uri,
-    type: courseVideo.type,
-    name: courseVideo.name,
-  });
+     // Add thumbnail file
+if (courseThumbnail) {
+  formData.append(
+    'thumbnailFile',
+    Platform.OS === 'web' ? courseThumbnail.file : {
+      uri: courseThumbnail.uri,
+      type: courseThumbnail.type,
+      name: courseThumbnail.name,
+    }
+  );
+}
+
+// Add video file
+if (courseVideo) {
+  formData.append(
+    'videoFile',
+    Platform.OS === 'web' ? courseVideo.file : {
+      uri: courseVideo.uri,
+      type: courseVideo.type,
+      name: courseVideo.name,
+    }
+  );
 }
       const response = await fetch('http://localhost:8080/api/academy/courses/add', {
         method: 'POST',
