@@ -22,7 +22,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary } from 'react-native-image-picker';
-
+import { Platform } from 'react-native';
 const AddNewCourseScreen = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -78,39 +78,56 @@ const AddNewCourseScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleVideoSelection = async () => {
-    const options = {
-      mediaType: 'video',
-      videoQuality: 'medium',
-      durationLimit: 300, // 5 minutes max
-      storageOptions: {
-        skipBackup: true,
-        path: 'videos',
-      },
-    };
+  // const handleVideoSelection = async () => {
+  //   const options = {
+  //     mediaType: 'video',
+  //     videoQuality: 'medium',
+  //     durationLimit: 300, // 5 minutes max
+  //     storageOptions: {
+  //       skipBackup: true,
+  //       path: 'videos',
+  //     },
+  //   };
 
-    try {
-      launchImageLibrary(options, (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled video selection');
-        } else if (response.errorMessage) {
-          Alert.alert('Error', response.errorMessage);
-        } else if (response.assets && response.assets[0]) {
-          const videoAsset = response.assets[0];
-          setCourseVideo({
-            uri: videoAsset.uri,
-            type: videoAsset.type,
-            name: videoAsset.fileName || 'course_video.mp4',
-            size: videoAsset.fileSize,
-          });
-          setErrors(prev => ({ ...prev, courseVideo: null }));
-        }
-      });
-    } catch (error) {
-      Alert.alert('Error', 'Failed to select video');
-    }
-  };
+  //   try {
+  //     launchImageLibrary(options, (response) => {
+  //       if (response.didCancel) {
+  //         console.log('User cancelled video selection');
+  //       } else if (response.errorMessage) {
+  //         Alert.alert('Error', response.errorMessage);
+  //       } else if (response.assets && response.assets[0]) {
+  //         const videoAsset = response.assets[0];
+  //         setCourseVideo({
+  //           uri: videoAsset.uri,
+  //           type: videoAsset.type,
+  //           name: videoAsset.fileName || 'course_video.mp4',
+  //           size: videoAsset.fileSize,
+  //         });
+  //         setErrors(prev => ({ ...prev, courseVideo: null }));
+  //       }
+  //     });
+  //   } catch (error) {
+  //     Alert.alert('Error', 'Failed to select video');
+  //   }
+  // };
 
+//My Changes here
+
+const handleWebVideoChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    setCourseVideo({
+      uri: URL.createObjectURL(file),
+      type: file.type,
+      name: file.name,
+      size: file.size,
+      file, // keep the raw file for upload
+    });
+    setErrors(prev => ({ ...prev, courseVideo: null }));
+  }
+};
+
+// to here
   const handleThumbnailSelection = async () => {
     const options = {
       mediaType: 'photo',
@@ -185,21 +202,47 @@ const AddNewCourseScreen = () => {
       formData.append('forSellers', suitableFor.sellers.toString());
       formData.append('forBuyers', suitableFor.buyers.toString());
       
-      // Add thumbnail file
-      if (courseThumbnail) {
-        formData.append('courseThumbnail', courseThumbnail);
+      // // Add thumbnail file
+      // if (courseThumbnail) {
+      //   formData.append('courseThumbnail', courseThumbnail);
+      // }
+      
+      // // Add video file
+      // if (courseVideo) {
+      //   formData.append('courseVideo', courseVideo);
+      // }
+
+      // const response = await fetch('http://localhost:8080/api/academy/courses/add', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      //   body: formData,
+      // });
+       // Add thumbnail file
+   
+        if (courseThumbnail) {
+        formData.append('thumbnailFile', {
+          uri: courseThumbnail.uri,
+          type: courseThumbnail.type,
+          name: courseThumbnail.name,
+        });
       }
       
       // Add video file
       if (courseVideo) {
-        formData.append('courseVideo', courseVideo);
-      }
-
+  formData.append('videoFile', Platform.OS === 'web' ? courseVideo.file : {
+    uri: courseVideo.uri,
+    type: courseVideo.type,
+    name: courseVideo.name,
+  });
+}
       const response = await fetch('http://localhost:8080/api/academy/courses/add', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          // Do NOT set 'Content-Type' here!
         },
         body: formData,
       });
@@ -359,7 +402,7 @@ const AddNewCourseScreen = () => {
           </Surface>
 
           {/* Course Video */}
-          <Surface style={styles.inputContainer} elevation={2}>
+          {/* <Surface style={styles.inputContainer} elevation={2}>
             <Text style={styles.labelText}>Course Video *</Text>
             <Text style={styles.helperText}>Upload your course video file</Text>
             
@@ -410,11 +453,123 @@ const AddNewCourseScreen = () => {
                 )}
               </View>
             </TouchableOpacity>
+          
             
             {errors.courseVideo && (
               <Text style={styles.errorText}>{errors.courseVideo}</Text>
             )}
-          </Surface>
+          </Surface> */}
+          <Surface style={styles.inputContainer} elevation={2}>
+  <Text style={styles.labelText}>Course Video *</Text>
+  <Text style={styles.helperText}>Upload your course video file</Text>
+
+  {Platform.OS === 'web' ? (
+    <View style={styles.videoUploadContainer}>
+      {!courseVideo ? (
+        <>
+          <IconButton
+            icon="video-plus"
+            size={36}
+            color="#1976d2"
+          />
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleWebVideoChange}
+            style={{
+              marginVertical: 10,
+              marginTop: 8,
+              marginBottom: 8,
+              border: 'none',
+              background: 'transparent',
+              fontSize: 16,
+            }}
+          />
+          <Text style={styles.videoUploadText}>
+            Click to select a video file
+          </Text>
+          <Text style={styles.videoHelpText}>
+            Max duration: 5 minutes
+          </Text>
+        </>
+      ) : (
+        <>
+          <IconButton
+            icon="video-check"
+            size={36}
+            color="#4caf50"
+          />
+          <Chip
+            style={styles.successChip}
+            textStyle={styles.successChipText}
+            icon="check-circle"
+            onPress={() => setCourseVideo(null)}
+          >
+            Video Selected (Click to change)
+          </Chip>
+          <Text style={styles.fileInfoText}>
+            {courseVideo.name}
+          </Text>
+          <Text style={styles.fileSizeText}>
+            Size: {(courseVideo.size / (1024 * 1024)).toFixed(2)} MB
+          </Text>
+        </>
+      )}
+    </View>
+  ) : (
+    <TouchableOpacity
+      onPress={handleVideoSelection}
+      style={[
+        styles.videoUploadContainer,
+        errors.courseVideo && styles.errorBorder
+      ]}
+    >
+      <View style={styles.videoUploadContent}>
+        {!courseVideo ? (
+          <>
+            <IconButton
+              icon="video-plus"
+              size={36}
+              color="#1976d2"
+            />
+            <Text style={styles.videoUploadText}>
+              Tap to upload a video file
+            </Text>
+            <Text style={styles.videoHelpText}>
+              Max duration: 5 minutes
+            </Text>
+          </>
+        ) : (
+          <>
+            <IconButton
+              icon="video-check"
+              size={36}
+              color="#4caf50"
+            />
+            <Chip
+              style={styles.successChip}
+              textStyle={styles.successChipText}
+              icon="check-circle"
+              onPress={handleVideoSelection}
+            >
+              Video Selected (Tap to change)
+            </Chip>
+            <Text style={styles.fileInfoText}>
+              {courseVideo.name}
+            </Text>
+            <Text style={styles.fileSizeText}>
+              Size: {(courseVideo.size / (1024 * 1024)).toFixed(2)} MB
+            </Text>
+          </>
+        )}
+      </View>
+    </TouchableOpacity>
+  )}
+
+  {errors.courseVideo && (
+    <Text style={styles.errorText}>{errors.courseVideo}</Text>
+  )}
+</Surface>
 
           {/* Course Fees */}
           <Surface style={styles.inputContainer} elevation={2}>
