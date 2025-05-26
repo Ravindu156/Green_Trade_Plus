@@ -31,7 +31,9 @@ public class SecurityConfig {
                     new AntPathRequestMatcher("/api/trade-items/**"),
                     new AntPathRequestMatcher("/api/item-bids/**"),
                     new AntPathRequestMatcher("/api/admin/price-settings/**"),
-                    new AntPathRequestMatcher("/api/academy/courses/**")
+                    new AntPathRequestMatcher("/api/academy/courses/**"),
+                    new AntPathRequestMatcher("/api/upload/**"),
+                    new AntPathRequestMatcher("/api/items/**")
                 ).permitAll()
                 .anyRequest().authenticated()
             )

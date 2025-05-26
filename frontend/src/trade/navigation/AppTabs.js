@@ -16,8 +16,8 @@ import AddNewItemScreen from '../screens/AddNewItemScreen';
 import { COLORS } from '../constants/colors';
 import FarmerYourListingsScreen from '../screens/FarmerYourListingsScreen';
 import SelectedItemDetailsScreen from '../screens/SelectedItemDetailsScreen';
-import AddNewCourseScreen from '../../academy/screens/AddNewCourseScreen';
 import Profile from '../../academy/screens/Profile';
+import BuyerProfileScreen from '../screens/BuyerProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator();
@@ -79,7 +79,7 @@ const ProfileStackScreen = () => {
 
       {userRole === 'buyer' && (
         <>
-          <ProfileStack.Screen name="SellerProfile" component={BuyerProfileScreen} />
+          <ProfileStack.Screen name="BuyerProfile" component={BuyerProfileScreen} />
           {/* Add seller-specific screens here */}
         </>
       )}

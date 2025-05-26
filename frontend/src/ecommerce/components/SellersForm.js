@@ -8,13 +8,16 @@ import {
   ScrollView,
   StyleSheet,
   Button,
+  FlatList,
 } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export default function SellersForm() {
   const [productName, setProductName] = useState('');
-  const [productPhoto, setProductPhoto] = useState(null);
+  const [productPhotos, setProductPhotos] = useState([]); // Changed to array
   const [sizeChart, setSizeChart] = useState(null);
   const [sizeDetails, setSizeDetails] = useState({});
   const [description, setDescription] = useState('');
@@ -32,22 +35,84 @@ export default function SellersForm() {
     });
   };
 
-  const handleSubmit = () => {
-    const formData = {
-      productName,
-      productPhoto,
-      sizeChart,
-      sizeDetails,
-      description,
-      stock,
-      unitPrice,
-      color,
-      category,
-      size,
-    };
-    console.log('Submitted data:', formData);
-    alert('Product submitted! Check console for data.');
+  const handleProductPhotoPick = () => {
+    if (productPhotos.length >= 5) {
+      alert('Maximum 5 photos allowed');
+      return;
+    }
+
+    ImagePicker.launchImageLibrary({ mediaType: 'photo' }, (response) => {
+      if (response.assets && response.assets.length > 0) {
+        setProductPhotos(prev => [...prev, response.assets[0]]);
+      }
+    });
   };
+
+  const removeProductPhoto = (indexToRemove) => {
+    setProductPhotos(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleSubmit = async () => {
+  try {
+    const userData = await AsyncStorage.getItem('user');
+    const token = await AsyncStorage.getItem('token');
+    const user = JSON.parse(userData);
+    const userId = user.id;
+
+    const formData = new FormData();
+    formData.append('seller', userId);
+    formData.append('itemName', productName);
+    formData.append('category', category);
+    formData.append('stock', stock);
+    formData.append('size', size);
+    formData.append('color', color);
+    formData.append('price', unitPrice);
+    formData.append('description', description);
+
+    // Add product photos
+    productPhotos.forEach((photo, index) => {
+      formData.append('productPhotos', {
+        uri: photo.uri,
+        name: photo.fileName || `photo${index}.jpg`,
+        type: photo.type || 'image/jpeg',
+      });
+    });
+
+    // Add size chart if exists
+    if (sizeChart) {
+      formData.append('sizeChart', {
+        uri: sizeChart.uri,
+        name: sizeChart.fileName || 'size_chart.jpg',
+        type: sizeChart.type || 'image/jpeg',
+      });
+    }
+
+    const response = await axios.post('http://localhost:8080/api/items', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('Product submitted:', response.data);
+    alert('Product submitted successfully!');
+  } catch (error) {
+    console.error('Error submitting product:', error.response?.data || error.message);
+    alert('Failed to submit product. Check console for details.');
+  }
+};
+
+  const renderProductPhoto = ({ item, index }) => (
+    <View style={styles.photoContainer}>
+      <Image source={{ uri: item.uri }} style={styles.image} />
+      <TouchableOpacity
+        style={styles.removeButton}
+        onPress={() => removeProductPhoto(index)}
+      >
+        <Text style={styles.removeButtonText}>×</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -113,9 +178,23 @@ export default function SellersForm() {
         <Picker.Item label="XL" value="XL" />
       </Picker>
 
-      <Text style={styles.label}>Upload Product Photo</Text>
-      <Button title="Choose Product Image" onPress={() => handleImagePick(setProductPhoto)} />
-      {productPhoto && <Image source={{ uri: productPhoto.uri }} style={styles.image} />}
+      <Text style={styles.label}>Upload Product Photos ({productPhotos.length}/5)</Text>
+      <Button 
+        title="Add Product Photo" 
+        onPress={handleProductPhotoPick}
+        disabled={productPhotos.length >= 5}
+      />
+      
+      {productPhotos.length > 0 && (
+        <FlatList
+          data={productPhotos}
+          renderItem={renderProductPhoto}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.photoList}
+        />
+      )}
 
       <Text style={styles.label}>Description</Text>
       <TextInput
@@ -158,6 +237,30 @@ const styles = StyleSheet.create({
     height: 100,
     marginTop: 10,
     borderRadius: 8,
+  },
+  photoContainer: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  photoList: {
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(255, 0, 0, 0.8)',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   submitButton: {
     backgroundColor: '#28a745',
