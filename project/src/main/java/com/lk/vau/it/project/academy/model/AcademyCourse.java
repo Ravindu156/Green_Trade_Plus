@@ -34,7 +34,7 @@ public class AcademyCourse {
     @Column(nullable = false)
     private String courseVideo;
     
-    @Column(nullable = false)
+    @Column
     private String courseThumbnail;
     
     @ElementCollection(fetch = FetchType.EAGER)
