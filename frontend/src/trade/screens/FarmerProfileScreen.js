@@ -124,6 +124,17 @@ const FarmerProfileScreen = ({ navigation }) => {
               <Text style={styles.actionAmount}>${userData?.earnings.toFixed(2)}</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('YourBids')}
+            >
+              <Ionicons name="pricetag" size={20} color={COLORS.textDark} />
+              <Text style={styles.actionText}>Your Bids</Text>
+              <Text style={styles.actionAmount}>${userData?.earnings.toFixed(2)}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Notifications */}
