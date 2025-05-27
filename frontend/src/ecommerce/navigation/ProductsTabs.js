@@ -1,23 +1,36 @@
-    import React from 'react';
-    import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-    import HomeScreen from '../screens/HomeScreen';
-    import MessagesScreen from '../screens/MessagesScreen';
-    import CartScreen from '../screens/CartScreen';
-    import AccountScreen from '../screens/AccountScreen';
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import HomeScreen from '../screens/HomeScreen';
+import MessagesScreen from '../screens/MessagesScreen';
+import CartScreen from '../screens/CartScreen';
+import AccountScreen from '../screens/AccountScreen';
+import SellersForm from '../components/SellersForm';
 
 
-    const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator();
+const AccountStack = createStackNavigator();
 
-    const ProductsTabs = () => {
-    return (
-            <Tab.Navigator>
-                <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Messages" component={MessagesScreen} />
-                <Tab.Screen name="Cart" component={CartScreen} />
-                <Tab.Screen name="Account" component={AccountScreen} />
-            </Tab.Navigator>
-        
-    );
-    };
+// Stack navigator for the Account tab
+const AccountStackNavigator = () => {
+  return (
+    <AccountStack.Navigator screenOptions={{ headerShown: false }}>
+      <AccountStack.Screen name="AccountMain" component={AccountScreen} />
+      <AccountStack.Screen name="SellersForm" component={SellersForm} />
+    </AccountStack.Navigator>
+  );
+};
 
-    export default ProductsTabs;
+const ProductsTabs = () => {
+  return (
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Messages" component={MessagesScreen} />
+      <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Account" component={AccountStackNavigator} />
+    </Tab.Navigator>
+  );
+};
+
+export default ProductsTabs;
