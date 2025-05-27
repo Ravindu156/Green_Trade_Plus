@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.lk.vau.it.project.service.CloudinaryService;
 import com.lk.vau.it.project.trade.dto.AuthResponseDto;
 import com.lk.vau.it.project.trade.dto.LoginRequestDto;
 import com.lk.vau.it.project.trade.dto.UserBasicInfoDto;
@@ -33,6 +34,9 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     @Value("${app.profile.photo.upload.dir:profile-photos}")
     private String uploadDir;
@@ -69,8 +73,12 @@ public class UserService {
 
         // Handle profile photo upload if provided
         if (registrationDto.getProfilePhoto() != null && !registrationDto.getProfilePhoto().isEmpty()) {
-            String photoPath = saveProfilePhoto(registrationDto.getProfilePhoto(), registrationDto.getUserName());
-            user.setProfilePhotoPath(photoPath);
+            try {
+                String photoPath = cloudinaryService.uploadFile(registrationDto.getProfilePhoto(), "image");
+                user.setProfilePhotoPath(photoPath);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to upload profile photo", e);
+            }
         }
 
         // Save user to database
@@ -168,7 +176,8 @@ public class UserService {
     public UserBasicInfoDto getUserBasicInfo(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return new UserBasicInfoDto(user.getUserName(), user.getProfilePhotoPath(), user.getFirstName(), user.getRole());
+        return new UserBasicInfoDto(user.getUserName(), user.getProfilePhotoPath(), user.getFirstName(),
+                user.getRole());
     }
 
 }

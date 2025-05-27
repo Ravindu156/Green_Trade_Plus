@@ -138,7 +138,7 @@ const HomeScreen = () => {
                             onPress={() => navigation.navigate('Profile')}
                         >
                             <Image
-                               source={{ uri: `http://${API_URL}:8080/api/auth/profile-photos/${profilePhoto}` }}
+                               source={{ uri: profilePhoto}}
                                 style={styles.profilePic}
                             />
                         </TouchableOpacity>

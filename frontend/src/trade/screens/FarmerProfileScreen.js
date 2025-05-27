@@ -76,7 +76,7 @@ const FarmerProfileScreen = ({ navigation }) => {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: `http://${API_URL}:8080/api/auth/profile-photos/${userData.profilePhoto}` }}
+              source={{ uri: userData.profilePhoto}}
               style={styles.profileImage}
             />
           </View>
