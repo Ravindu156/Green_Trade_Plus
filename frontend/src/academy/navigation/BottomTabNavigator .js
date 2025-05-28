@@ -7,6 +7,7 @@ import Home from '../screens/Home';
 import Certificates from '../screens/Cerificates';
 import Profile from '../screens/Profile';
 import AddNewCourseScreen from '../screens/AddNewCourseScreen'; // Import your new screen
+import AllCourses from '../screens/AllCourses'; 
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -77,7 +78,14 @@ const AppNavigator = () => {
         component={AddNewCourseScreen} 
         options={{ headerShown: false }} 
       />
+    
+      <Stack.Screen 
+        name="AllCourses" 
+        component={AllCourses} 
+        options={{ headerShown: false }} 
+      />
     </Stack.Navigator>
+    
   );
 };
 
