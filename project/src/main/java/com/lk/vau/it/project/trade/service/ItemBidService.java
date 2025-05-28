@@ -36,6 +36,21 @@ public class ItemBidService {
                 .collect(Collectors.toList());
     }
 
+    //Get Bids by User
+    public List<ItemBidDto> getBidsByUserId(Long userId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    // You likely want to fetch *all* bids for the user, not just one
+    List<ItemBid> bids = itemBidRepository.findByUser(user)
+            .map(List::of) // convert Optional<ItemBid> to List<ItemBid>
+            .orElse(List.of()); // return empty list if no bid found
+
+    return bids.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+}
+
     public Double getMaxBidForItem(Long itemId) {
         return itemBidRepository.findMaxBidByItemId(itemId).orElse(0.0);
     }

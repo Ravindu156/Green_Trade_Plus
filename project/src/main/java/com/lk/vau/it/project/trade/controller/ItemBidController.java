@@ -29,6 +29,11 @@ public class ItemBidController {
         Double maxBid = itemBidService.getMaxBidForItem(itemId);
         return ResponseEntity.ok(maxBid);
     }
+
+    @GetMapping("/user/{userId}")
+    public List<ItemBidDto> getBidsByUserId(@PathVariable Long userId) {
+        return itemBidService.getBidsByUserId(userId);
+    }
     
     @PostMapping
     public ResponseEntity<ItemBidDto> placeBid(@RequestBody ItemBidDto itemBidDto) {

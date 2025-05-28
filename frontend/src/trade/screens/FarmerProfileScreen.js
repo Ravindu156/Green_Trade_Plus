@@ -76,7 +76,7 @@ const FarmerProfileScreen = ({ navigation }) => {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: `http://${API_URL}:8080/api/auth/profile-photos/${userData.profilePhoto}` }}
+              source={{ uri: userData.profilePhoto}}
               style={styles.profileImage}
             />
           </View>
@@ -121,6 +121,17 @@ const FarmerProfileScreen = ({ navigation }) => {
             >
               <Ionicons name="cash" size={20} color={COLORS.textDark} />
               <Text style={styles.actionText}>Your Earnings</Text>
+              <Text style={styles.actionAmount}>${userData?.earnings.toFixed(2)}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('YourBids')}
+            >
+              <Ionicons name="pricetag" size={20} color={COLORS.textDark} />
+              <Text style={styles.actionText}>Your Bids</Text>
               <Text style={styles.actionAmount}>${userData?.earnings.toFixed(2)}</Text>
             </TouchableOpacity>
           </View>
