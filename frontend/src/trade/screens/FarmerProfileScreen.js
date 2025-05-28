@@ -16,7 +16,10 @@ import Constants from 'expo-constants';
 
 const FarmerProfileScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(null);
+  const [userId, setUserId] = useState();
   const [loading, setLoading] = useState(true);
+  const [bidsCount, setBidsCount] = useState(0);
+  const [tradeItemsCount, setTradeItemsCount] = useState(0);
   const { API_URL } = Constants.expoConfig.extra;
   console.log("Hello User Data", userData);
 
@@ -30,6 +33,8 @@ const FarmerProfileScreen = ({ navigation }) => {
       // In a real app, you would fetch more comprehensive user data
       const user = await AsyncStorage.getItem('user');
       const userData = JSON.parse(user);
+      const userId = userData.id;
+      setUserId(userId)
       // Sample data - in a real app, this would come from an API
       console.log("All User Data", userData);
 
@@ -52,6 +57,35 @@ const FarmerProfileScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+  const fetchCounts = async () => {
+    if (!userId) return; // Ensure userId is available before making requests
+
+    try {
+      // Fetch bids count
+      const bidsResponse = await fetch(`http://localhost:8080/api/item-bids/user/${userId}`);
+      if (bidsResponse.ok) {
+        const bidsData = await bidsResponse.json();
+        setBidsCount(bidsData.length);
+      }
+
+      // Fetch trade items count
+      const tradeItemsResponse = await fetch(`http://localhost:8080/api/trade-items/user/${userId}`);
+      if (tradeItemsResponse.ok) {
+        const tradeItemsData = await tradeItemsResponse.json();
+        setTradeItemsCount(tradeItemsData.length);
+      }
+    } catch (error) {
+      console.error('Error fetching counts:', error);
+      setBidsCount(0);
+      setTradeItemsCount(0);
+    }
+  };
+
+  fetchCounts();
+}, [userId]);
+
 
   if (loading) {
     return (
@@ -76,7 +110,7 @@ const FarmerProfileScreen = ({ navigation }) => {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: userData.profilePhoto}}
+              source={{ uri: userData.profilePhoto }}
               style={styles.profileImage}
             />
           </View>
@@ -93,7 +127,7 @@ const FarmerProfileScreen = ({ navigation }) => {
             >
               <Ionicons name="list" size={20} color={COLORS.textDark} />
               <Text style={styles.actionText}>Your Listings</Text>
-              <Text style={styles.actionCount}>{userData?.listings}</Text>
+              <Text style={styles.actionCount}>{tradeItemsCount}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -132,7 +166,7 @@ const FarmerProfileScreen = ({ navigation }) => {
             >
               <Ionicons name="pricetag" size={20} color={COLORS.textDark} />
               <Text style={styles.actionText}>Your Bids</Text>
-              <Text style={styles.actionAmount}>${userData?.earnings.toFixed(2)}</Text>
+              <Text style={styles.actionAmount}>{bidsCount}</Text>
             </TouchableOpacity>
           </View>
         </View>
