@@ -41,10 +41,7 @@ public class ItemBidService {
     User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
-    // You likely want to fetch *all* bids for the user, not just one
-    List<ItemBid> bids = itemBidRepository.findByUser(user)
-            .map(List::of) // convert Optional<ItemBid> to List<ItemBid>
-            .orElse(List.of()); // return empty list if no bid found
+    List<ItemBid> bids = itemBidRepository.findAllByUser(user);
 
     return bids.stream()
             .map(this::convertToDto)
