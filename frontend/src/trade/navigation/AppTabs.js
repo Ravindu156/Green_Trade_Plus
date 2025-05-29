@@ -18,6 +18,7 @@ import FarmerYourListingsScreen from '../screens/FarmerYourListingsScreen';
 import SelectedItemDetailsScreen from '../screens/SelectedItemDetailsScreen';
 import Profile from '../../academy/screens/Profile';
 import BuyerProfileScreen from '../screens/BuyerProfileScreen';
+import YourBidsListScreen from '../screens/YourBidsListScreen';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createStackNavigator();
@@ -74,6 +75,7 @@ const ProfileStackScreen = () => {
           <ProfileStack.Screen name="FarmerYourListingsScreen" component={FarmerYourListingsScreen} />
           <ProfileStack.Screen name="AddNewItemScreen" component={AddNewItemScreen} />
           <ProfileStack.Screen name="TodayMarketScreen" component={TodayMarketScreen} />
+          <ProfileStack.Screen name="YourBids" component={YourBidsListScreen} />
         </>
       )}
 

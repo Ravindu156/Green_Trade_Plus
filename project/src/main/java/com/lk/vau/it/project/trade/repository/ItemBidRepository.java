@@ -30,7 +30,7 @@ public interface ItemBidRepository extends JpaRepository<ItemBid, Long> {
     Optional<ItemBid> findByItemAndUser(TradeItem item, User user);
 
     //Find existing bid by user
-    Optional<ItemBid> findByUser(User user);
+    List<ItemBid> findAllByUser(User user);
 
     // ✅ Fetch all bids by item ID (alternative way)
     List<ItemBid> findByItemIdOrderByBidDesc(Long itemId);
