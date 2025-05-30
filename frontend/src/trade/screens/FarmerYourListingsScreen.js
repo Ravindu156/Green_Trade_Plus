@@ -11,6 +11,7 @@ import {
   RefreshControl,
   TextInput,
   Modal,
+  ScrollView,
 } from 'react-native';
 import Swal from 'sweetalert2';
 import { Ionicons, MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
@@ -27,6 +28,11 @@ const FarmerYourListings = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [bidModalVisible, setBidModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [bids, setBids] = useState([]);
+  const [loadingBids, setLoadingBids] = useState(false);
+  const [closingAuction, setClosingAuction] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
     dateFilter: 'all', // all, today, week, month
     organicStatus: 'all', // all, organic, inorganic
@@ -67,6 +73,77 @@ const FarmerYourListings = ({ navigation }) => {
       console.error('Error fetching items:', error);
       Alert.alert('Error', 'Failed to load your listings. Please try again.');
       setLoading(false);
+    }
+  };
+
+  const fetchBids = async (itemId) => {
+    try {
+      setLoadingBids(true);
+      const response = await axios.get(`http://localhost:8080/api/item-bids/${itemId}`);
+      // Sort bids in descending order by bid amount
+      const sortedBids = response.data.sort((a, b) => b.bid - a.bid);
+      setBids(sortedBids);
+      setLoadingBids(false);
+    } catch (error) {
+      console.error('Error fetching bids:', error);
+      Alert.alert('Error', 'Failed to load bids. Please try again.');
+      setLoadingBids(false);
+    }
+  };
+
+  const handleItemPress = (item) => {
+    setSelectedItem(item);
+    setBidModalVisible(true);
+    fetchBids(item.id);
+  };
+
+  const handleCloseAuction = async () => {
+    const result = await Swal.fire({
+      title: 'Close Auction',
+      text: 'Are you sure you want to close this auction? This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Close Auction',
+      cancelButtonText: 'Cancel',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setClosingAuction(true);
+        // You might want to update this endpoint based on your backend API
+        await axios.patch(`http://localhost:8080/api/trade-items/${selectedItem.id}/close-auction`);
+        
+        // Update the item status locally
+        setItems(prevItems => 
+          prevItems.map(item => 
+            item.id === selectedItem.id 
+              ? { ...item, auctionClosed: true }
+              : item
+          )
+        );
+
+        setBidModalVisible(false);
+        setClosingAuction(false);
+
+        Swal.fire({
+          title: 'Auction Closed!',
+          text: 'The auction has been successfully closed.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } catch (error) {
+        console.error('Error closing auction:', error);
+        setClosingAuction(false);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to close auction. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
     }
   };
 
@@ -206,6 +283,17 @@ const FarmerYourListings = ({ navigation }) => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const formatDateTime = (dateString) => {
+    const options = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleString(undefined, options);
+  };
+
   const renderTableHeader = () => (
     <View style={styles.tableHeader}>
       <TouchableOpacity
@@ -255,46 +343,146 @@ const FarmerYourListings = ({ navigation }) => {
   );
 
   const renderItem = ({ item }) => (
-    <View style={styles.tableRow}>
-      <View style={[styles.cell, { flex: 2.5 }]}>
-        <Text style={styles.cellText} numberOfLines={1}>{item.name}</Text>
-      </View>
+    <TouchableOpacity onPress={() => handleItemPress(item)}>
+      <View style={styles.tableRow}>
+        <View style={[styles.cell, { flex: 2.5 }]}>
+          <Text style={styles.cellText} numberOfLines={1}>{item.name}</Text>
+        </View>
 
-      <View style={[styles.cell, { flex: 1.5 }]}>
-        <Text style={styles.cellText} numberOfLines={1}>{item.category}</Text>
-      </View>
+        <View style={[styles.cell, { flex: 1.5 }]}>
+          <Text style={styles.cellText} numberOfLines={1}>{item.category}</Text>
+        </View>
 
-      <View style={[styles.cell, { flex: 1 }]}>
-        <Text style={styles.cellText}>{item.quantity}</Text>
-      </View>
+        <View style={[styles.cell, { flex: 1 }]}>
+          <Text style={styles.cellText}>{item.quantity}</Text>
+        </View>
 
-      <View style={[styles.cell, { flex: 1.5 }]}>
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: item.isOrganic == true ? '#DEFFED' : '#FFF3DC' }
-        ]}>
-          <Text style={[
-            styles.statusText,
-            { color: item.isOrganic == true ? '#0CA85C' : '#FFA113' }
+        <View style={[styles.cell, { flex: 1.5 }]}>
+          <View style={[
+            styles.statusBadge,
+            { backgroundColor: item.isOrganic == true ? '#DEFFED' : '#FFF3DC' }
           ]}>
-            {item.organic == 1 ? 'Organic' : 'Inorganic'}
+            <Text style={[
+              styles.statusText,
+              { color: item.isOrganic == true ? '#0CA85C' : '#FFA113' }
+            ]}>
+              {item.organic == 1 ? 'Organic' : 'Inorganic'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={[styles.cell, { flex: 2 }]}>
+          <Text style={styles.cellText}>{formatDate(item.dateAdded)}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.cell, { flex: 1 }]}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleDeleteItem(item.id);
+          }}
+        >
+          <View style={styles.deleteButton}>
+            <Ionicons name="trash-outline" size={16} color="white" />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderBidItem = ({ item: bid, index }) => (
+    <View style={[styles.bidRow, index === 0 && styles.topBid]}>
+      <View style={styles.bidRank}>
+        <Text style={[styles.bidRankText, index === 0 && styles.topBidText]}>
+          #{index + 1}
+        </Text>
+      </View>
+      <View style={styles.bidDetails}>
+        <View style={styles.bidAmountContainer}>
+          <Text style={[styles.bidAmount, index === 0 && styles.topBidAmount]}>
+            ${bid.bid.toFixed(2)}
           </Text>
+          {index === 0 && (
+            <View style={styles.topBidBadge}>
+              <Text style={styles.topBidBadgeText}>TOP BID</Text>
+            </View>
+          )}
         </View>
+        <Text style={styles.bidTime}>{formatDateTime(bid.bidTime)}</Text>
+        <Text style={styles.bidUserId}>User ID: {bid.userId}</Text>
       </View>
-
-      <View style={[styles.cell, { flex: 2 }]}>
-        <Text style={styles.cellText}>{formatDate(item.dateAdded)}</Text>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.cell, { flex: 1 }]}
-        onPress={() => handleDeleteItem(item.id)}
-      >
-        <View style={styles.deleteButton}>
-          <Ionicons name="trash-outline" size={16} color="white" />
-        </View>
-      </TouchableOpacity>
     </View>
+  );
+
+  const renderBidModal = () => (
+    <Modal
+      visible={bidModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setBidModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.bidModalContent}>
+          <View style={styles.bidModalHeader}>
+            <View style={styles.bidModalTitleContainer}>
+              <Text style={styles.bidModalTitle}>{selectedItem?.name}</Text>
+              <Text style={styles.bidModalSubtitle}>Auction Bids</Text>
+            </View>
+            <TouchableOpacity onPress={() => setBidModalVisible(false)}>
+              <Ionicons name="close" size={24} color={COLORS.textDark} />
+            </TouchableOpacity>
+          </View>
+
+          {loadingBids ? (
+            <View style={styles.bidLoadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+              <Text style={styles.loadingText}>Loading bids...</Text>
+            </View>
+          ) : bids.length === 0 ? (
+            <View style={styles.noBidsContainer}>
+              <AntDesign name="inbox" size={60} color={COLORS.lightGray} />
+              <Text style={styles.noBidsText}>No bids yet</Text>
+              <Text style={styles.noBidsSubText}>
+                Your item is waiting for the first bid
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.bidsContainer}>
+              <View style={styles.bidsHeader}>
+                <Text style={styles.bidsCount}>{bids.length} Bid{bids.length !== 1 ? 's' : ''}</Text>
+                <Text style={styles.highestBid}>
+                  Highest: ${Math.max(...bids.map(b => b.bid)).toFixed(2)}
+                </Text>
+              </View>
+              
+              <FlatList
+                data={bids}
+                renderItem={renderBidItem}
+                keyExtractor={(bid) => bid.id.toString()}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.bidsList}
+              />
+            </View>
+          )}
+
+          <View style={styles.bidModalActions}>
+            <TouchableOpacity
+              style={styles.closeAuctionButton}
+              onPress={handleCloseAuction}
+              disabled={closingAuction || bids.length === 0}
+            >
+              {closingAuction ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.closeAuctionButtonText}>
+                  Close Auction
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 
   const renderFilterModal = () => (
@@ -590,6 +778,9 @@ const FarmerYourListings = ({ navigation }) => {
 
       {/* Filter Modal */}
       {renderFilterModal()}
+
+      {/* Bid Details Modal */}
+      {renderBidModal()}
     </SafeAreaView>
   );
 };
@@ -613,6 +804,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   headerTitle: {
     fontSize: 18,
@@ -626,6 +822,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   searchFilterContainer: {
     flexDirection: 'row',
@@ -633,6 +834,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   searchContainer: {
     flex: 1,
@@ -642,6 +845,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     height: 40,
+    marginRight: 10,
   },
   searchIcon: {
     marginRight: 8,
@@ -652,26 +856,25 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   filterButton: {
-    marginLeft: 12,
-    backgroundColor: '#F0F7FF',
     width: 40,
     height: 40,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E6F0FF',
   },
   activeFiltersContainer: {
-    backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingVertical: 10,
+    backgroundColor: '#F9F9F9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   activeFiltersTitle: {
     fontSize: 12,
-    fontWeight: '500',
     color: COLORS.textLight,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   filtersRow: {
     flexDirection: 'row',
@@ -681,107 +884,115 @@ const styles = StyleSheet.create({
   activeFilter: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F7FF',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#EFF8FF',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     marginRight: 8,
-    marginBottom: 8,
+    marginBottom: 5,
   },
   activeFilterText: {
     fontSize: 12,
     color: COLORS.primary,
-    marginRight: 6,
+    marginRight: 5,
   },
   clearAllButton: {
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
   clearAllText: {
     fontSize: 12,
-    color: COLORS.textLight,
-    textDecorationLine: 'underline',
+    color: COLORS.primary,
+    fontWeight: '500',
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    justifyContent: 'space-around',
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
-    borderColor: '#F0F0F0',
-    marginTop: 8,
+    paddingVertical: 15,
+    backgroundColor: 'white',
+    margin: 16,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   statNumber: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.primary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
     color: COLORS.textLight,
-    marginTop: 4,
   },
   tableContainer: {
     flex: 1,
-    marginTop: 12,
-    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    overflow: 'hidden',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#F6F9FE',
-    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
     paddingVertical: 12,
-    marginBottom: 8,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
   },
   headerCell: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingHorizontal: 8,
+    justifyContent: 'center',
   },
   headerText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: COLORS.textDark,
     marginRight: 4,
   },
   tableRow: {
     flexDirection: 'row',
-    backgroundColor: 'white',
-    marginBottom: 8,
-    borderRadius: 8,
     paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+    alignItems: 'center',
   },
   cell: {
-    paddingHorizontal: 8,
     justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   cellText: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textDark,
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 10,
+    alignSelf: 'center',
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '600',
   },
   deleteButton: {
-    backgroundColor: '#FF4D4F',
+    backgroundColor: '#FF3B30',
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -792,51 +1003,51 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 16,
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: COLORS.textDark,
     marginTop: 16,
   },
   emptySubText: {
     fontSize: 14,
     color: COLORS.textLight,
-    textAlign: 'center',
     marginTop: 8,
+    textAlign: 'center',
+    maxWidth: '80%',
   },
   addFirstButton: {
+    marginTop: 20,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
-    marginTop: 16,
   },
   addFirstButtonText: {
     color: 'white',
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
+    width: '90%',
     backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    borderRadius: 12,
+    padding: 16,
     maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 18,
@@ -844,48 +1055,48 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   filterSection: {
-    marginTop: 16,
+    marginBottom: 20,
   },
   filterSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: COLORS.textDark,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   filterOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   filterOption: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     marginRight: 8,
     marginBottom: 8,
   },
   filterOptionActive: {
-    backgroundColor: '#E6F0FF',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   filterOptionText: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textDark,
   },
   filterOptionTextActive: {
-    color: COLORS.primary,
-    fontWeight: '500',
+    color: 'white',
   },
   filterActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 24,
+    marginTop: 16,
   },
   resetButton: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 8,
     backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
+    borderRadius: 8,
     alignItems: 'center',
     marginRight: 8,
   },
@@ -894,18 +1105,780 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   applyButton: {
-    flex: 2,
+    flex: 1,
     paddingVertical: 12,
-    borderRadius: 8,
     backgroundColor: COLORS.primary,
-    justifyContent: 'center',
+    borderRadius: 8,
     alignItems: 'center',
-    marginLeft: 8,
   },
   applyButtonText: {
     color: 'white',
+    fontWeight: '500',
+  },
+  bidModalContent: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    maxHeight: '80%',
+  },
+  bidModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  bidModalTitleContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  bidModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textDark,
+  },
+  bidModalSubtitle: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginTop: 2,
+  },
+  bidLoadingContainer: {
+    padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: COLORS.textLight,
+  },
+  noBidsContainer: {
+    padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noBidsText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textDark,
+    marginTop: 10,
+  },
+  noBidsSubText: {
+    fontSize: 14,
+    color: COLORS.textLight,
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  bidsContainer: {
+    paddingHorizontal: 16,
+  },
+  bidsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  bidsCount: {
+    fontSize: 14,
+    color: COLORS.textLight,
+  },
+  highestBid: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  bidsList: {
+    paddingBottom: 16,
+  },
+  bidRow: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  topBid: {
+    backgroundColor: '#F0F7FF',
+    borderColor: COLORS.primary,
+  },
+  bidRank: {
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bidRankText: {
+    fontSize: 14,
+    color: COLORS.textLight,
+  },
+  topBidText: {
+    color: COLORS.primary,
     fontWeight: '600',
   },
+  bidDetails: {
+    flex: 1,
+  },
+  bidAmountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  bidAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    marginRight: 8,
+  },
+  topBidAmount: {
+    color: COLORS.primary,
+  },
+  topBidBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  topBidBadgeText: {
+    fontSize: 10,
+    color: 'white',
+    fontWeight: '600',
+  },
+  bidTime: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginBottom: 2,
+  },
+  bidUserId: {
+    fontSize: 12,
+    color: COLORS.textDark,
+  },
+  bidModalActions: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  closeAuctionButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  closeAuctionButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  // Additional styles for better visual hierarchy
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    marginBottom: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    marginVertical: 16,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: COLORS.textDark,
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  pickerContainer: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  secondaryButtonText: {
+    color: COLORS.textDark,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#FF3B30',
+    marginTop: 4,
+  },
+  successText: {
+    fontSize: 12,
+    color: '#34C759',
+    marginTop: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginTop: 4,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  radioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioChecked: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.primary,
+  },
+  radioLabel: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  switchLabel: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  imagePicker: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  imagePickerText: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  imagePickerContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 3,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 3,
+  },
+  tooltip: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    padding: 8,
+    borderRadius: 4,
+    zIndex: 100,
+  },
+  tooltipText: {
+    color: 'white',
+    fontSize: 12,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    borderBottomColor: COLORS.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textDark,
+  },
+  tabTextActive: {
+    color: COLORS.primary,
+  },
+  dropdownContainer: {
+    position: 'relative',
+  },
+  dropdownButton: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownButtonText: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  dropdownList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    zIndex: 10,
+    elevation: 5,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  stepperStep: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepperStepActive: {
+    backgroundColor: COLORS.primary,
+  },
+  stepperStepText: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  stepperStepTextActive: {
+    color: 'white',
+  },
+  stepperLine: {
+    flex: 1,
+    height: 2,
+    backgroundColor: '#F0F0F0',
+  },
+  stepperLineActive: {
+    backgroundColor: COLORS.primary,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingStar: {
+    marginRight: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: COLORS.textDark,
+    marginLeft: 8,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textDark,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#FF3B30',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationBadgeText: {
+    fontSize: 10,
+    color: 'white',
+    fontWeight: '600',
+  },
+  carousel: {
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  carouselImage: {
+    width: '100%',
+    height: '100%',
+  },
+  carouselPagination: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  carouselDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    marginHorizontal: 4,
+  },
+  carouselDotActive: {
+    backgroundColor: 'white',
+  },
+  tag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 4,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagText: {
+    fontSize: 12,
+    color: COLORS.textDark,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  counterButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  counterValue: {
+    width: 40,
+    textAlign: 'center',
+    fontSize: 16,
+    color: COLORS.textDark,
+  },
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  segmentedButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  segmentedButtonActive: {
+    backgroundColor: COLORS.primary,
+  },
+  segmentedButtonText: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  segmentedButtonTextActive: {
+    color: 'white',
+  },
+  actionSheetContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    padding: 16,
+  },
+  actionSheetTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  actionSheetButton: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  actionSheetButtonText: {
+    fontSize: 16,
+    color: COLORS.textDark,
+  },
+  actionSheetCancelButton: {
+    paddingVertical: 16,
+    marginTop: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  actionSheetCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textDark,
+  },
+  skeleton: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 4,
+  },
+  shimmerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+  },
+  shimmer: {
+    width: '100%',
+    height: '100%',
+  },
+  toastContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  toastText: {
+    flex: 1,
+    color: 'white',
+    fontSize: 14,
+    marginLeft: 12,
+  },
+  toastIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomTabBar: {
+    flexDirection: 'row',
+    height: 60,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  bottomTab: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomTabIcon: {
+    marginBottom: 4,
+  },
+  bottomTabLabel: {
+    fontSize: 10,
+    color: COLORS.textLight,
+  },
+  bottomTabLabelActive: {
+    color: COLORS.primary,
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  parallaxHeader: {
+    height: 250,
+    justifyContent: 'flex-end',
+  },
+  parallaxBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  parallaxContent: {
+    padding: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  parallaxTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 8,
+  },
+  parallaxSubtitle: {
+    fontSize: 16,
+    color: 'white',
+  },
+  collapsibleHeader: {
+    padding: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  collapsibleTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textDark,
+  },
+  collapsibleContent: {
+    padding: 16,
+    backgroundColor: '#FAFAFA',
+  },
+  swipeableAction: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+  },
+  swipeableDelete: {
+    backgroundColor: '#FF3B30',
+  },
+  swipeableArchive: {
+    backgroundColor: '#FF9500',
+  },
+  swipeableText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  watermark: {
+    position: 'absolute',
+    opacity: 0.1,
+    zIndex: -1,
+  },
+  watermarkText: {
+    fontSize: 100,
+    color: COLORS.textDark,
+    fontWeight: 'bold',
+  }
 });
-
 export default FarmerYourListings;
