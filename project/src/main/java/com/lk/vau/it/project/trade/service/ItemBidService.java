@@ -46,7 +46,23 @@ public class ItemBidService {
     return bids.stream()
             .map(this::convertToDto)
             .collect(Collectors.toList());
-}
+    }
+
+    //Get by item and user who added the item
+    public List<ItemBidDto> getBidsByItemIdAndUserId(Long itemId, Long userId) {
+        userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        tradeItemRepository.findById(itemId)
+            .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        List<ItemBid> bids = itemBidRepository.findByItemIdAndUserId(itemId, userId);
+
+        return bids.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+    }
+    
 
     public Double getMaxBidForItem(Long itemId) {
         return itemBidRepository.findMaxBidByItemId(itemId).orElse(0.0);

@@ -34,6 +34,11 @@ public class ItemBidController {
     public List<ItemBidDto> getBidsByUserId(@PathVariable Long userId) {
         return itemBidService.getBidsByUserId(userId);
     }
+
+    @GetMapping("/bids/{itemId}/{userId}")
+    public List<ItemBidDto> getBidsByItemIdAndUserId(@PathVariable Long itemId, @PathVariable Long userId) {
+        return itemBidService.getBidsByItemIdAndUserId(itemId, userId);
+    }
     
     @PostMapping
     public ResponseEntity<ItemBidDto> placeBid(@RequestBody ItemBidDto itemBidDto) {

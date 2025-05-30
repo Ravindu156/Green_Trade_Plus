@@ -34,4 +34,7 @@ public interface ItemBidRepository extends JpaRepository<ItemBid, Long> {
 
     // ✅ Fetch all bids by item ID (alternative way)
     List<ItemBid> findByItemIdOrderByBidDesc(Long itemId);
+
+    // Fetch all bids by item ID and user id who added the item
+    List<ItemBid> findByItemIdAndUserId(Long itemId, Long userId);
 }
