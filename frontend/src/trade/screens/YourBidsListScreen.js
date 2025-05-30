@@ -61,12 +61,18 @@ const YourBidsListScreen = ({ navigation }) => {
                     try {
                         const itemResponse = await fetch(`http://localhost:8080/api/trade-items/${bid.itemId}`);
                         const itemData = await itemResponse.json();
+
+                        // Fetch max bid for this item
+                        const maxBidResponse = await fetch(`http://localhost:8080/api/item-bids/${bid.itemId}/max`);
+                        const maxBidData = await maxBidResponse.json();
+
                         return {
                             ...bid,
                             itemName: itemData.name,
                             category: itemData.category,
                             farmerId: itemData.user.id,
-                            itemDetails: itemData
+                            itemDetails: itemData,
+                            maxBid: maxBidData || null // Adjust property name based on your API response
                         };
                     } catch (error) {
                         console.error('Error fetching item details:', error);
@@ -75,7 +81,8 @@ const YourBidsListScreen = ({ navigation }) => {
                             itemName: 'Unknown Item',
                             category: 'unknown',
                             farmerId: null,
-                            itemDetails: null
+                            itemDetails: null,
+                            maxBid: null
                         };
                     }
                 })
