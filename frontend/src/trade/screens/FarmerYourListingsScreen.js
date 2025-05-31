@@ -55,8 +55,8 @@ const FarmerYourListings = ({ navigation }) => {
 
   const fetchItems = async () => {
     const userData = await AsyncStorage.getItem('user');
-     const user = JSON.parse(userData);
-     const userId = user.id;
+    const user = JSON.parse(userData);
+    const userId = user.id;
     try {
       setLoading(true);
       const response = await axios.get(`http://${API_URL}:8080/api/trade-items/user/${userId}`);
@@ -114,11 +114,11 @@ const FarmerYourListings = ({ navigation }) => {
         setClosingAuction(true);
         // You might want to update this endpoint based on your backend API
         await axios.patch(`http://localhost:8080/api/trade-items/${selectedItem.id}/close-auction`);
-        
+
         // Update the item status locally
-        setItems(prevItems => 
-          prevItems.map(item => 
-            item.id === selectedItem.id 
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item.id === selectedItem.id
               ? { ...item, auctionClosed: true }
               : item
           )
@@ -284,9 +284,9 @@ const FarmerYourListings = ({ navigation }) => {
   };
 
   const formatDateTime = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -344,9 +344,19 @@ const FarmerYourListings = ({ navigation }) => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => handleItemPress(item)}>
-      <View style={styles.tableRow}>
-        <View style={[styles.cell, { flex: 2.5 }]}>
+      <View style={[
+        styles.tableRow,
+        { backgroundColor: item.isBidActive ? '#E6FFE6' : '#FFE6E6' }
+      ]}>
+
+        <View style={[styles.cell, { flex: 2.5, flexDirection: 'row', alignItems: 'center' }]}>
           <Text style={styles.cellText} numberOfLines={1}>{item.name}</Text>
+
+          {!item.isBidActive && (
+            <View style={styles.closedLabel}>
+              <Text style={styles.closedLabelText}>Closed</Text>
+            </View>
+          )}
         </View>
 
         <View style={[styles.cell, { flex: 1.5 }]}>
@@ -360,13 +370,13 @@ const FarmerYourListings = ({ navigation }) => {
         <View style={[styles.cell, { flex: 1.5 }]}>
           <View style={[
             styles.statusBadge,
-            { backgroundColor: item.isOrganic == true ? '#DEFFED' : '#FFF3DC' }
+            { backgroundColor: item.isOrganic ? '#DEFFED' : '#FFF3DC' }
           ]}>
             <Text style={[
               styles.statusText,
-              { color: item.isOrganic == true ? '#0CA85C' : '#FFA113' }
+              { color: item.isOrganic ? '#0CA85C' : '#FFA113' }
             ]}>
-              {item.organic == 1 ? 'Organic' : 'Inorganic'}
+              {item.isOrganic ? 'Organic' : 'Inorganic'}
             </Text>
           </View>
         </View>
@@ -389,6 +399,7 @@ const FarmerYourListings = ({ navigation }) => {
       </View>
     </TouchableOpacity>
   );
+
 
   const renderBidItem = ({ item: bid, index }) => (
     <View style={[styles.bidRow, index === 0 && styles.topBid]}>
@@ -454,7 +465,7 @@ const FarmerYourListings = ({ navigation }) => {
                   Highest: ${Math.max(...bids.map(b => b.bid)).toFixed(2)}
                 </Text>
               </View>
-              
+
               <FlatList
                 data={bids}
                 renderItem={renderBidItem}
@@ -720,14 +731,14 @@ const FarmerYourListings = ({ navigation }) => {
 
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {filteredItems.filter(item => item.isOrganic  == true).length}
+            {filteredItems.filter(item => item.isOrganic == true).length}
           </Text>
           <Text style={styles.statLabel}>Organic</Text>
         </View>
 
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>
-            {filteredItems.filter(item => item.isOrganic  == false).length}
+            {filteredItems.filter(item => item.isOrganic == false).length}
           </Text>
           <Text style={styles.statLabel}>Inorganic</Text>
         </View>
@@ -827,6 +838,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
+  },
+  closedLabel: {
+    backgroundColor: '#FF4C4C',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginLeft: 6,
+    alignSelf: 'center',
+  },
+  closedLabelText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   searchFilterContainer: {
     flexDirection: 'row',

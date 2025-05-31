@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import com.lk.vau.it.project.trade.dto.TradeItemDto;
 import com.lk.vau.it.project.trade.service.TradeItemService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -79,6 +81,15 @@ public class TradeItemController {
 
         TradeItemDto updatedItem = itemService.updateBidStatus(id, isBidActive);
         return new ResponseEntity<>(updatedItem, HttpStatus.OK);
+    }
+
+    @GetMapping("/{itemId}/bid-status")
+    public ResponseEntity<Map<String, Object>> getBidStatus(@PathVariable Long itemId) {
+        boolean isActive = itemService.getBidStatusByItemId(itemId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("itemId", itemId);
+        response.put("isBidActive", isActive);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -8,6 +8,8 @@ import com.lk.vau.it.project.trade.repository.UserRepository;
 import com.lk.vau.it.project.trade.service.TradeItemService;
 
 import jakarta.persistence.EntityNotFoundException;
+
+import org.hibernate.cache.spi.support.AbstractReadWriteAccess.Item;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +73,13 @@ public class TradeItemServiceImpl implements TradeItemService {
         return itemRepository.findByFarmerId(userId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean getBidStatusByItemId(Long itemId) {
+        TradeItem item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
+        return item.getIsBidActive();
     }
 
     @Override

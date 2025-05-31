@@ -13,4 +13,5 @@ public interface  TradeItemService {
     TradeItemDto updateItem(Long id, TradeItemDto ItemDto);
     void deleteItem(Long id);
     TradeItemDto updateBidStatus(Long id, boolean isBidActive);
+     boolean getBidStatusByItemId(Long itemId);
 }
