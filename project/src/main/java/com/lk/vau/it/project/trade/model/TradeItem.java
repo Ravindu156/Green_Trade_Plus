@@ -41,13 +41,16 @@ public class TradeItem {
     @Column(nullable = false)
     private LocalDateTime dateAdded;
 
+    @Column(nullable = false)
+    private Boolean isBidActive = true;
+
     // Default constructor
     public TradeItem() {
     }
 
     // Constructor with all fields except id (for new entities)
-    public TradeItem(User farmer, List<ItemBid> itemBids, String category, String name, Double quantity, 
-                     String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+    public TradeItem(User farmer, List<ItemBid> itemBids, String category, String name, Double quantity,
+                     String unit, Boolean isOrganic, String description, LocalDateTime dateAdded, Boolean isBidActive) {
         this.farmer = farmer;
         this.itemBids = itemBids;
         this.category = category;
@@ -57,6 +60,7 @@ public class TradeItem {
         this.isOrganic = isOrganic;
         this.description = description;
         this.dateAdded = dateAdded;
+        this.isBidActive = isBidActive;
     }
 
     // Constructor with required fields only
@@ -67,6 +71,7 @@ public class TradeItem {
         this.quantity = quantity;
         this.unit = unit;
         this.isOrganic = isOrganic;
+        this.isBidActive = true;
     }
 
     // Constructor with required fields and description
@@ -79,6 +84,7 @@ public class TradeItem {
         this.unit = unit;
         this.isOrganic = isOrganic;
         this.description = description;
+        this.isBidActive = true;
     }
 
     // Constructor with required fields, description, and dateAdded
@@ -92,11 +98,12 @@ public class TradeItem {
         this.isOrganic = isOrganic;
         this.description = description;
         this.dateAdded = dateAdded;
+        this.isBidActive = true;
     }
 
     // Constructor with all fields including id (for existing entities)
     public TradeItem(Long id, User farmer, List<ItemBid> itemBids, String category, String name, Double quantity,
-                     String unit, Boolean isOrganic, String description, LocalDateTime dateAdded) {
+                     String unit, Boolean isOrganic, String description, LocalDateTime dateAdded, Boolean isBidActive) {
         this.id = id;
         this.farmer = farmer;
         this.itemBids = itemBids;
@@ -107,12 +114,16 @@ public class TradeItem {
         this.isOrganic = isOrganic;
         this.description = description;
         this.dateAdded = dateAdded;
+        this.isBidActive = isBidActive;
     }
 
     @PrePersist
     protected void onCreate() {
         if (this.dateAdded == null) {
             this.dateAdded = LocalDateTime.now();
+        }
+        if (this.isBidActive == null) {
+            this.isBidActive = true;
         }
     }
 
@@ -197,6 +208,14 @@ public class TradeItem {
         this.dateAdded = dateAdded;
     }
 
+    public Boolean getIsBidActive() {
+        return isBidActive;
+    }
+
+    public void setIsBidActive(Boolean isBidActive) {
+        this.isBidActive = isBidActive;
+    }
+
     @Override
     public String toString() {
         return "TradeItem{" +
@@ -208,6 +227,7 @@ public class TradeItem {
                 ", quantity=" + quantity +
                 ", unit='" + unit + '\'' +
                 ", isOrganic=" + isOrganic +
+                ", isBidActive=" + isBidActive +
                 ", description='" + description + '\'' +
                 ", dateAdded=" + dateAdded +
                 '}';

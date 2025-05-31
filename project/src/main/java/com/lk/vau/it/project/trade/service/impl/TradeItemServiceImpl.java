@@ -39,11 +39,11 @@ public class TradeItemServiceImpl implements TradeItemService {
 
         User user = userRepository.findById(itemDto.getUser().getId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + itemDto.getUser().getId()));
-        
+
         TradeItem item = convertToEntity(itemDto);
         item.setFarmer(user);
         // Remove explicit dateAdded setting since @PrePersist handles it
-        
+
         TradeItem savedItem = itemRepository.save(item);
         return convertToDTO(savedItem);
     }
@@ -97,7 +97,8 @@ public class TradeItemServiceImpl implements TradeItemService {
         // Fixed: Proper user handling in update
         if (itemDto.getUser() != null && itemDto.getUser().getId() != null) {
             User user = userRepository.findById(itemDto.getUser().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + itemDto.getUser().getId()));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("User not found with id: " + itemDto.getUser().getId()));
             existingItem.setFarmer(user);
         }
 
@@ -107,6 +108,7 @@ public class TradeItemServiceImpl implements TradeItemService {
         existingItem.setQuantity(itemDto.getQuantity());
         existingItem.setUnit(itemDto.getUnit());
         existingItem.setIsOrganic(itemDto.getIsOrganic());
+        existingItem.setIsBidActive(itemDto.getIsBidActive());
         existingItem.setDescription(itemDto.getDescription());
         // dateAdded should not be updated
 
@@ -122,6 +124,17 @@ public class TradeItemServiceImpl implements TradeItemService {
         itemRepository.deleteById(id);
     }
 
+    @Override
+    public TradeItemDto updateBidStatus(Long id, boolean isBidActive) {
+        TradeItem item = itemRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + id));
+
+        item.setIsBidActive(isBidActive);
+        TradeItem updatedItem = itemRepository.save(item);
+
+        return convertToDTO(updatedItem);
+    }
+
     // Helper methods to convert between Entity and DTO
     private TradeItem convertToEntity(TradeItemDto itemDto) {
         TradeItem item = new TradeItem();
@@ -131,6 +144,7 @@ public class TradeItemServiceImpl implements TradeItemService {
         item.setQuantity(itemDto.getQuantity());
         item.setUnit(itemDto.getUnit());
         item.setIsOrganic(itemDto.getIsOrganic());
+        item.setIsBidActive(itemDto.getIsBidActive());
         item.setDescription(itemDto.getDescription());
         // Don't set dateAdded - let @PrePersist handle it
         return item;
@@ -146,7 +160,7 @@ public class TradeItemServiceImpl implements TradeItemService {
                 item.getUnit(),
                 item.getIsOrganic(),
                 item.getDescription(),
-                item.getDateAdded()
-        );
+                item.getDateAdded(),
+                item.getIsBidActive());
     }
 }

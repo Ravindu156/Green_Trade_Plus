@@ -12,4 +12,5 @@ public interface  TradeItemService {
     List<TradeItemDto> getOrganicItems(Boolean isOrganic);
     TradeItemDto updateItem(Long id, TradeItemDto ItemDto);
     void deleteItem(Long id);
+    TradeItemDto updateBidStatus(Long id, boolean isBidActive);
 }
