@@ -134,6 +134,7 @@ const YourBidsListScreen = ({ navigation }) => {
             setSelectedBid(bid);
             setBidDetails(bid.itemDetails);
 
+
             // Fetch farmer info
             if (bid.farmerId) {
                 const farmerResponse = await fetch(`http://localhost:8080/api/auth/${bid.farmerId}/basic-info`);
@@ -189,6 +190,23 @@ const YourBidsListScreen = ({ navigation }) => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const getBidResultMessage = (bid) => {
+        if (!bid.itemDetails?.isBidActive) { // If bid is closed
+            if (bid.maxBid && bid.bid === bid.maxBid) {
+                return {
+                    text: "Congratulations! You won this bid!",
+                    type: "success"
+                };
+            } else {
+                return {
+                    text: "Your bid didn't win this auction.",
+                    type: "info"
+                };
+            }
+        }
+        return null; // No message for active bids
     };
 
     const renderBidItem = ({ item, index }) => (
@@ -327,6 +345,27 @@ const YourBidsListScreen = ({ navigation }) => {
                     <ScrollView style={styles.modalContent}>
                         {bidDetails && (
                             <>
+                                {getBidResultMessage(selectedBid) && (
+                                    <View style={[
+                                        styles.resultMessageContainer,
+                                        getBidResultMessage(selectedBid).type === 'success'
+                                            ? styles.successMessage
+                                            : styles.infoMessage
+                                    ]}>
+                                        <Ionicons
+                                            name={getBidResultMessage(selectedBid).type === 'success'
+                                                ? "trophy-outline"
+                                                : "information-circle-outline"}
+                                            size={20}
+                                            color={getBidResultMessage(selectedBid).type === 'success'
+                                                ? "#fff"
+                                                : "#fff"}
+                                        />
+                                        <Text style={styles.resultMessageText}>
+                                            {getBidResultMessage(selectedBid).text}
+                                        </Text>
+                                    </View>
+                                )}
                                 <View style={styles.detailSection}>
                                     <Text style={styles.sectionTitle}>Item Information</Text>
                                     <View style={styles.detailRow}>
@@ -348,6 +387,31 @@ const YourBidsListScreen = ({ navigation }) => {
                                     <View style={styles.detailRow}>
                                         <Text style={styles.detailLabel}>Description:</Text>
                                         <Text style={styles.detailValue}>{bidDetails.description}</Text>
+                                    </View>
+                                    <View style={styles.detailRow}>
+                                        <Text style={styles.detailLabel}>Bid Status:</Text>
+                                        <View style={[
+                                            styles.statusLabel,
+                                            bidDetails.isBidActive
+                                                ? { backgroundColor: '#DEFFED' }
+                                                : { backgroundColor: '#FFE5E5' }
+                                        ]}>
+                                            <Text style={[
+                                                styles.statusLabelText,
+                                                bidDetails.isBidActive
+                                                    ? { color: '#0CA85C' }
+                                                    : { color: '#D32F2F' }
+                                            ]}>
+                                                {bidDetails.isBidActive ? 'Active' : 'Closed'}
+                                                {!bidDetails.isBidActive && (
+                                                    <Text style={{ fontSize: 12 }}>
+                                                        {selectedBid.maxBid && selectedBid.bid === selectedBid.maxBid
+                                                            ? ' (You won)'
+                                                            : ' (You lost)'}
+                                                    </Text>
+                                                )}
+                                            </Text>
+                                        </View>
                                     </View>
                                 </View>
 
@@ -468,6 +532,26 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    resultMessageContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    successMessage: {
+        backgroundColor: '#4CAF50',
+    },
+    infoMessage: {
+        backgroundColor: '#2196F3',
+    },
+    resultMessageText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '500',
+        marginLeft: 8,
+        flex: 1,
     },
     backButton: {
         padding: 8,
@@ -742,6 +826,20 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#666',
         flex: 1,
+    },
+    statusLabel: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 70,
+    },
+
+    statusLabelText: {
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
     },
     detailValue: {
         fontSize: 14,
