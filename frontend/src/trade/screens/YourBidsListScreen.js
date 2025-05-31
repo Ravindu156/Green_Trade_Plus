@@ -388,31 +388,6 @@ const YourBidsListScreen = ({ navigation }) => {
                                         <Text style={styles.detailLabel}>Description:</Text>
                                         <Text style={styles.detailValue}>{bidDetails.description}</Text>
                                     </View>
-                                    <View style={styles.detailRow}>
-                                        <Text style={styles.detailLabel}>Bid Status:</Text>
-                                        <View style={[
-                                            styles.statusLabel,
-                                            bidDetails.isBidActive
-                                                ? { backgroundColor: '#DEFFED' }
-                                                : { backgroundColor: '#FFE5E5' }
-                                        ]}>
-                                            <Text style={[
-                                                styles.statusLabelText,
-                                                bidDetails.isBidActive
-                                                    ? { color: '#0CA85C' }
-                                                    : { color: '#D32F2F' }
-                                            ]}>
-                                                {bidDetails.isBidActive ? 'Active' : 'Closed'}
-                                                {!bidDetails.isBidActive && (
-                                                    <Text style={{ fontSize: 12 }}>
-                                                        {selectedBid.maxBid && selectedBid.bid === selectedBid.maxBid
-                                                            ? ' (You won)'
-                                                            : ' (You lost)'}
-                                                    </Text>
-                                                )}
-                                            </Text>
-                                        </View>
-                                    </View>
                                 </View>
 
                                 {farmerInfo && (
@@ -432,6 +407,31 @@ const YourBidsListScreen = ({ navigation }) => {
                                 {selectedBid && (
                                     <View style={styles.detailSection}>
                                         <Text style={styles.sectionTitle}>Bid Information</Text>
+                                        <View style={styles.detailRow}>
+                                            <Text style={styles.detailLabel}>Bid Status:</Text>
+                                            <View style={[
+                                                styles.statusLabel,
+                                                bidDetails.isBidActive
+                                                    ? { backgroundColor: '#DEFFED' }
+                                                    : { backgroundColor: '#FFE5E5' }
+                                            ]}>
+                                                <Text style={[
+                                                    styles.statusLabelText,
+                                                    bidDetails.isBidActive
+                                                        ? { color: '#0CA85C' }
+                                                        : { color: '#D32F2F' }
+                                                ]}>
+                                                    {bidDetails.isBidActive ? 'Active' : 'Closed'}
+                                                    {!bidDetails.isBidActive && (
+                                                        <Text style={{ fontSize: 12 }}>
+                                                            {selectedBid.maxBid && selectedBid.bid === selectedBid.maxBid
+                                                                ? ' (You won)'
+                                                                : ' (You lost)'}
+                                                        </Text>
+                                                    )}
+                                                </Text>
+                                            </View>
+                                        </View>
                                         <View style={styles.detailRow}>
                                             <Text style={styles.detailLabel}>Your Bid:</Text>
                                             <Text style={styles.bidPriceValue}>LKR {selectedBid.bid.toFixed(2)}</Text>
