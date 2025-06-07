@@ -53,54 +53,116 @@ export default function SellersForm() {
   };
 
   const handleSubmit = async () => {
-  try {
-    const userData = await AsyncStorage.getItem('user');
-    const token = await AsyncStorage.getItem('token');
-    const user = JSON.parse(userData);
-    const userId = user.id;
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      const token = await AsyncStorage.getItem('token');
+      const user = JSON.parse(userData);
+      const userId = user.id;
 
-    const formData = new FormData();
-    formData.append('seller', userId);
-    formData.append('itemName', productName);
-    formData.append('category', category);
-    formData.append('stock', stock);
-    formData.append('size', size);
-    formData.append('color', color);
-    formData.append('price', unitPrice);
-    formData.append('description', description);
+      const formData = new FormData();
+      formData.append('seller', userId);
+      formData.append('itemName', productName);
+      formData.append('category', category);
+      formData.append('stock', stock);
+      formData.append('size', size);
+      formData.append('color', color);
+      formData.append('price', unitPrice);
+      formData.append('description', description);
 
-    // Add product photos
-    productPhotos.forEach((photo, index) => {
-      formData.append('productPhotos', {
-        uri: photo.uri,
-        name: photo.fileName || `photo${index}.jpg`,
-        type: photo.type || 'image/jpeg',
+      // Enhanced logging for debugging
+      console.log('=== FormData Debug ===');
+      console.log('ProductPhotos array length:', productPhotos.length);
+      console.log('SizeChart exists:', !!sizeChart);
+
+      // Log each photo being added
+      productPhotos.forEach((photo, index) => {
+        console.log(`Photo ${index} details:`, {
+          uri: photo.uri,
+          fileName: photo.fileName,
+          type: photo.type,
+          hasUri: !!photo.uri
+        });
       });
-    });
 
-    // Add size chart if exists
-    if (sizeChart) {
-      formData.append('sizeChart', {
-        uri: sizeChart.uri,
-        name: sizeChart.fileName || 'size_chart.jpg',
-        type: sizeChart.type || 'image/jpeg',
+      // FIXED: Handle file uploads for React Native Web
+      // Convert data URIs to Files for web, or use objects for native
+      const processFile = async (fileData, defaultName) => {
+        if (fileData.uri && fileData.uri.startsWith('data:')) {
+          // For React Native Web - convert data URI to File
+          const response = await fetch(fileData.uri);
+          const blob = await response.blob();
+          return new File([blob], fileData.fileName || defaultName, {
+            type: fileData.type || 'image/jpeg'
+          });
+        } else {
+          // For React Native mobile - use object format
+          return {
+            uri: fileData.uri,
+            name: fileData.fileName || defaultName,
+            type: fileData.type || 'image/jpeg',
+          };
+        }
+      };
+
+      // Process product photos
+      for (let i = 0; i < productPhotos.length; i++) {
+        const photo = productPhotos[i];
+        console.log(`Processing productPhoto[${i}]:`, photo.uri);
+
+        try {
+          const processedFile = await processFile(photo, `photo${i}.jpg`);
+          formData.append('productPhotos', processedFile);
+          console.log(`Added productPhoto[${i}] to FormData`);
+        } catch (error) {
+          console.error(`Error processing photo ${i}:`, error);
+        }
+      }
+
+      // Process size chart
+      if (sizeChart) {
+        console.log('Processing sizeChart:', sizeChart.uri);
+        try {
+          const processedSizeChart = await processFile(sizeChart, 'size_chart.jpg');
+          formData.append('sizeChart', processedSizeChart);
+          console.log('Added sizeChart to FormData');
+        } catch (error) {
+          console.error('Error processing size chart:', error);
+        }
+      }
+
+      console.log('Sending request to backend...');
+      const response = await axios.post('http://localhost:8080/api/items', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      console.log('Product submitted:', response.data);
+      alert('Product submitted successfully!');
+
+      // Reset form after successful submission
+      setProductName('');
+      setProductPhotos([]);
+      setSizeChart(null);
+      setDescription('');
+      setStock('');
+      setUnitPrice('');
+      setColor('Red');
+      setCategory('Clothing');
+      setSize('M');
+
+    } catch (error) {
+      console.error('Error submitting product:', error.response?.data || error.message);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      }
+      alert('Failed to submit product. Check console for details.');
     }
+  };
 
-    const response = await axios.post('http://localhost:8080/api/items', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
-      },
-    });
 
-    console.log('Product submitted:', response.data);
-    alert('Product submitted successfully!');
-  } catch (error) {
-    console.error('Error submitting product:', error.response?.data || error.message);
-    alert('Failed to submit product. Check console for details.');
-  }
-};
 
   const renderProductPhoto = ({ item, index }) => (
     <View style={styles.photoContainer}>
@@ -179,12 +241,12 @@ export default function SellersForm() {
       </Picker>
 
       <Text style={styles.label}>Upload Product Photos ({productPhotos.length}/5)</Text>
-      <Button 
-        title="Add Product Photo" 
+      <Button
+        title="Add Product Photo"
         onPress={handleProductPhotoPick}
         disabled={productPhotos.length >= 5}
       />
-      
+
       {productPhotos.length > 0 && (
         <FlatList
           data={productPhotos}

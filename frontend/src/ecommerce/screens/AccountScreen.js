@@ -55,9 +55,9 @@ const AccountScreen = () => {
         <View style={styles.profileHeader}>
                     {user?.profilePhotoPath ? (
             <>
-              {console.log(`Profile photo URI: http://localhost:8080/api/auth/profile-photos/${user.profilePhotoPath}`)}
+              {console.log(user.profilePhotoPath)}
               <Image
-                source={{ uri: `http://localhost:8080/api/auth/profile-photos/${user.profilePhotoPath}` }}
+                source={{ uri: user.profilePhotoPath}}
                 style={styles.profilePic}
               />
             </>
