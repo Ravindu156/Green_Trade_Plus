@@ -142,15 +142,15 @@ export default function SellersForm() {
       alert('Product submitted successfully!');
 
       // Reset form after successful submission
-      setProductName('');
-      setProductPhotos([]);
-      setSizeChart(null);
-      setDescription('');
-      setStock('');
-      setUnitPrice('');
-      setColor('Red');
-      setCategory('Clothing');
-      setSize('M');
+      // setProductName('');
+      // setProductPhotos([]);
+      // setSizeChart(null);
+      // setDescription('');
+      // setStock('');
+      // setUnitPrice('');
+      // setColor('Red');
+      // setCategory('Clothing');
+      // setSize('M');
 
     } catch (error) {
       console.error('Error submitting product:', error.response?.data || error.message);
