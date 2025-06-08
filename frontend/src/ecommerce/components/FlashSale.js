@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
-export default function FlashSale() {
+
+export default function FlashSale({ navigation }) {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -101,7 +102,11 @@ export default function FlashSale() {
                     contentContainerStyle={styles.productScrollContent}
                 >
                     {items.map((item) => (
-                        <TouchableOpacity key={item.item_id} style={styles.productCard}>
+                        <TouchableOpacity 
+                            key={item.item_id} 
+                            style={styles.productCard}
+                            onPress={() => navigation.navigate('ProductDetails', { productId: item.item_id })}
+                        >
                             <View style={styles.imageContainer}>
                                 <Image
                                     source={getItemImage(item)}
