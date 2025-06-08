@@ -5,13 +5,13 @@ import Category from '../components/Category';
 import PromoBanner from '../components/PromoBanner';
 import FlashSale from '../components/FlashSale';
 
-export default function HomeScreen() {
+export default function HomeScreen({navigation}) {
   return (
     <ScrollView style={styles.container}>
       <SearchBar />
       <PromoBanner />
       <Category />
-      <FlashSale />
+      <FlashSale  navigation={navigation}/>
     </ScrollView>
   );
 }

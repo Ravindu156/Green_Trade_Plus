@@ -7,10 +7,13 @@ import MessagesScreen from '../screens/MessagesScreen';
 import CartScreen from '../screens/CartScreen';
 import AccountScreen from '../screens/AccountScreen';
 import SellersForm from '../components/SellersForm';
+import HomeStackNavigator from './HomeStackNavigator';
 
 
 const Tab = createBottomTabNavigator();
 const AccountStack = createStackNavigator();
+
+
 
 // Stack navigator for the Account tab
 const AccountStackNavigator = () => {
@@ -25,7 +28,7 @@ const AccountStackNavigator = () => {
 const ProductsTabs = () => {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeStackNavigator} />
       <Tab.Screen name="Messages" component={MessagesScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Account" component={AccountStackNavigator} />
