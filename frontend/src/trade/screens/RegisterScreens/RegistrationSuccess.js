@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { AntDesign } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
+//import LottieView from 'lottie-react-native';
 
 const RegistrationSuccess = ({ formData, navigation }) => {
   const scaleAnim = new Animated.Value(0);
@@ -52,13 +52,13 @@ const RegistrationSuccess = ({ formData, navigation }) => {
       >
         <View style={styles.successIconContainer}>
           {/* Replace with your actual animation file path */}
-          <LottieView
+          {/* <LottieView
             ref={lottieRef}
             source={require('../../../../assets/animations/complete.gif')} 
             autoPlay
             loop={false}
             style={styles.animation}
-          />
+          /> */}
         </View>
         
         <Text style={styles.title}>Registration Successful!</Text>

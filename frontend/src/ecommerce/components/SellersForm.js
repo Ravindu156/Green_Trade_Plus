@@ -10,7 +10,7 @@ import {
   Button,
   FlatList,
 } from 'react-native';
-import * as ImagePicker from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -27,25 +27,49 @@ export default function SellersForm() {
   const [category, setCategory] = useState('Clothing');
   const [size, setSize] = useState('M');
 
-  const handleImagePick = (setter) => {
-    ImagePicker.launchImageLibrary({ mediaType: 'photo' }, (response) => {
-      if (response.assets && response.assets.length > 0) {
-        setter(response.assets[0]);
-      }
+  // Updated handleImagePick
+  const handleImagePick = async (setter) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access media library is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3], // optional, adjust as needed
+      quality: 1,
     });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setter(result.assets[0]);
+    }
   };
 
-  const handleProductPhotoPick = () => {
+  // Updated handleProductPhotoPick
+  const handleProductPhotoPick = async () => {
     if (productPhotos.length >= 5) {
       alert('Maximum 5 photos allowed');
       return;
     }
 
-    ImagePicker.launchImageLibrary({ mediaType: 'photo' }, (response) => {
-      if (response.assets && response.assets.length > 0) {
-        setProductPhotos(prev => [...prev, response.assets[0]]);
-      }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access media library is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3], // optional
+      quality: 1,
     });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setProductPhotos(prev => [...prev, result.assets[0]]);
+    }
   };
 
   const removeProductPhoto = (indexToRemove) => {

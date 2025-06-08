@@ -22,7 +22,7 @@ import {
 } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Video from 'react-native-video'; // You'll need to install this: npm install react-native-video
+import { Video } from 'expo-av'; // You'll need to install this: npm install react-native-video
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -213,10 +213,10 @@ const CourseDetails = () => {
           <Video
             source={{ uri: course.courseVideo }}
             style={styles.video}
-            controls={true}
+            useNativeControls={true}          // <-- changed here
             resizeMode="contain"
             onError={(error) => {
-              console.error('Video error:', error);
+              console.error('Video error:', error.nativeEvent);
               Alert.alert('Video Error', 'Failed to load video. Please try again.');
             }}
           />
@@ -234,9 +234,9 @@ const CourseDetails = () => {
           <Text style={styles.statLabel}>Students</Text>
         </View>
       </View>
-      
+
       <Divider style={styles.statDivider} />
-      
+
       <View style={styles.statItem}>
         <IconButton icon="star" size={24} color="#ff9800" />
         <View>
@@ -244,9 +244,9 @@ const CourseDetails = () => {
           <Text style={styles.statLabel}>Rating</Text>
         </View>
       </View>
-      
+
       <Divider style={styles.statDivider} />
-      
+
       <View style={styles.statItem}>
         <IconButton icon="cash" size={24} color="#4caf50" />
         <View>
@@ -289,8 +289,8 @@ const CourseDetails = () => {
     <View style={styles.container}>
       <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={() => navigation.goBack()} color="#fff" />
-        <Appbar.Content 
-          title="Course Details" 
+        <Appbar.Content
+          title="Course Details"
           titleStyle={styles.headerTitle}
           subtitle={course.courseTitle}
           subtitleStyle={styles.headerSubtitle}

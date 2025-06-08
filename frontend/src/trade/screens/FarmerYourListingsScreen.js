@@ -13,7 +13,6 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import Swal from 'sweetalert2';
 import { Ionicons, MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import axios from 'axios';
@@ -98,54 +97,45 @@ const FarmerYourListings = ({ navigation }) => {
   };
 
   const handleCloseAuction = async () => {
-    const result = await Swal.fire({
-      title: 'Close Auction',
-      text: 'Are you sure you want to close this auction? This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Close Auction',
-      cancelButtonText: 'Cancel',
-    });
+    Alert.alert(
+      'Close Auction',
+      'Are you sure you want to close this auction? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Close Auction',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setClosingAuction(true);
+              await axios.patch(`http://localhost:8080/api/trade-items/${selectedItem.id}/close-auction`);
 
-    if (result.isConfirmed) {
-      try {
-        setClosingAuction(true);
-        // You might want to update this endpoint based on your backend API
-        await axios.patch(`http://localhost:8080/api/trade-items/${selectedItem.id}/close-auction`);
+              setItems(prevItems =>
+                prevItems.map(item =>
+                  item.id === selectedItem.id
+                    ? { ...item, auctionClosed: true }
+                    : item
+                )
+              );
 
-        // Update the item status locally
-        setItems(prevItems =>
-          prevItems.map(item =>
-            item.id === selectedItem.id
-              ? { ...item, auctionClosed: true }
-              : item
-          )
-        );
+              setBidModalVisible(false);
+              setClosingAuction(false);
 
-        setBidModalVisible(false);
-        setClosingAuction(false);
-
-        Swal.fire({
-          title: 'Auction Closed!',
-          text: 'The auction has been successfully closed.',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      } catch (error) {
-        console.error('Error closing auction:', error);
-        setClosingAuction(false);
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to close auction. Please try again.',
-          icon: 'error',
-          confirmButtonText: 'OK',
-        });
-      }
-    }
+              Alert.alert('Auction Closed', 'The auction has been successfully closed.');
+            } catch (error) {
+              console.error('Error closing auction:', error);
+              setClosingAuction(false);
+              Alert.alert('Error', 'Failed to close auction. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
+
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -154,39 +144,31 @@ const FarmerYourListings = ({ navigation }) => {
   };
 
   const handleDeleteItem = async (id) => {
-    const result = await Swal.fire({
-      title: 'Confirm Delete',
-      text: 'Are you sure you want to delete this item?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel',
-    });
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this item?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axios.delete(`http://localhost:8080/api/trade-items/${id}`);
+              setItems(prevItems => prevItems.filter(item => item.id !== id));
 
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:8080/api/trade-items/${id}`);
-        setItems(prevItems => prevItems.filter(item => item.id !== id));
-
-        Swal.fire({
-          title: 'Deleted!',
-          text: 'Item deleted successfully.',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      } catch (error) {
-        console.error('Error deleting item:', error);
-        Swal.fire({
-          title: 'Error!',
-          text: 'Failed to delete item. Please try again.',
-          icon: 'error',
-          confirmButtonText: 'OK',
-        });
-      }
-    }
+              Alert.alert('Deleted', 'Item deleted successfully.');
+            } catch (error) {
+              console.error('Error deleting item:', error);
+              Alert.alert('Error', 'Failed to delete item. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const applyFiltersAndSearch = () => {

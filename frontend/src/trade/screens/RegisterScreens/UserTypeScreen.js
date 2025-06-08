@@ -3,7 +3,6 @@
 import React from 'react';
 import { Alert, Modal, TextInput } from 'react-native';
 import { useState } from 'react';
-import SweetAlert from 'react-native-sweet-alert';
 import {
   View,
   Text,

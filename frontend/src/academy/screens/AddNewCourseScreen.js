@@ -21,20 +21,20 @@ import {
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
 
 const AddNewCourseScreen = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-  
+
   // Form states
   const [courseTitle, setCourseTitle] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
   const [courseFees, setCourseFees] = useState('');
   const [courseVideo, setCourseVideo] = useState(null);
   const [courseThumbnail, setCourseThumbnail] = useState(null);
-  
+
   // Checkbox states
   const [suitableFor, setSuitableFor] = useState({
     farmers: false,
@@ -47,34 +47,34 @@ const AddNewCourseScreen = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!courseTitle.trim()) {
       newErrors.courseTitle = 'Course title is required';
     }
-    
+
     if (!courseDescription.trim()) {
       newErrors.courseDescription = 'Course description is required';
     }
-    
+
     if (!courseFees.trim()) {
       newErrors.courseFees = 'Course fees is required';
     } else if (isNaN(courseFees) || parseFloat(courseFees) < 0) {
       newErrors.courseFees = 'Please enter a valid amount';
     }
-    
+
     if (!courseVideo) {
       newErrors.courseVideo = 'Course video is required';
     }
-    
+
     if (!courseThumbnail) {
       newErrors.courseThumbnail = 'Course thumbnail is required';
     }
-    
+
     const hasSelectedAudience = Object.values(suitableFor).some(value => value);
     if (!hasSelectedAudience) {
       newErrors.suitableFor = 'Please select at least one target audience';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -111,72 +111,64 @@ const AddNewCourseScreen = () => {
 
   // React Native video selection (for mobile)
   const handleVideoSelection = async () => {
-    const options = {
-      mediaType: 'video',
-      videoQuality: 'medium',
-      durationLimit: 300, // 5 minutes max
-      storageOptions: {
-        skipBackup: true,
-        path: 'videos',
-      },
-    };
-
     try {
-      launchImageLibrary(options, (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled video selection');
-        } else if (response.errorMessage) {
-          Alert.alert('Error', response.errorMessage);
-        } else if (response.assets && response.assets[0]) {
-          const videoAsset = response.assets[0];
-          setCourseVideo({
-            uri: videoAsset.uri,
-            type: videoAsset.type,
-            name: videoAsset.fileName || 'course_video.mp4',
-            size: videoAsset.fileSize,
-          });
-          setErrors(prev => ({ ...prev, courseVideo: null }));
-        }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        videoQuality: ImagePicker.VideoQualityType.Medium,
+        durationLimit: 300, // 5 minutes max
       });
+
+      if (result.canceled) {
+        console.log('User cancelled video selection');
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const videoAsset = result.assets[0];
+        setCourseVideo({
+          uri: videoAsset.uri,
+          type: videoAsset.type,
+          name: videoAsset.fileName || 'course_video.mp4',
+          size: videoAsset.fileSize,
+        });
+        setErrors(prev => ({ ...prev, courseVideo: null }));
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to select video');
     }
   };
 
-  // React Native thumbnail selection (for mobile)
   const handleThumbnailSelection = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 0.8,
-      maxWidth: 800,
-      maxHeight: 600,
-      storageOptions: {
-        skipBackup: true,
-        path: 'images',
-      },
-    };
-
     try {
-      launchImageLibrary(options, (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled thumbnail selection');
-        } else if (response.errorMessage) {
-          Alert.alert('Error', response.errorMessage);
-        } else if (response.assets && response.assets[0]) {
-          const imageAsset = response.assets[0];
-          setCourseThumbnail({
-            uri: imageAsset.uri,
-            type: imageAsset.type,
-            name: imageAsset.fileName || 'thumbnail.jpg',
-            size: imageAsset.fileSize,
-          });
-          setErrors(prev => ({ ...prev, courseThumbnail: null }));
-        }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        // maxWidth and maxHeight are not supported in expo-image-picker
+        // If you want to resize, you must process image separately
+        allowsEditing: true,
+        aspect: [4, 3],
       });
+
+      if (result.canceled) {
+        console.log('User cancelled thumbnail selection');
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const imageAsset = result.assets[0];
+        setCourseThumbnail({
+          uri: imageAsset.uri,
+          type: imageAsset.type,
+          name: imageAsset.fileName || 'thumbnail.jpg',
+          size: imageAsset.fileSize,
+        });
+        setErrors(prev => ({ ...prev, courseThumbnail: null }));
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to select thumbnail');
     }
   };
+
 
   const handleCheckboxChange = (type) => {
     setSuitableFor(prev => ({
@@ -281,7 +273,7 @@ const AddNewCourseScreen = () => {
       setLoading(false);
     }
   };
-  
+
   const resetForm = () => {
     setCourseTitle('');
     setCourseDescription('');
@@ -418,7 +410,7 @@ const AddNewCourseScreen = () => {
                 )}
               </View>
             ) : (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleThumbnailSelection}
                 style={[
                   styles.thumbnailUploadContainer,
@@ -617,7 +609,7 @@ const AddNewCourseScreen = () => {
                 />
                 <Text style={styles.checkboxLabel}>For Farmers</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.checkboxItem}
                 onPress={() => handleCheckboxChange('sellers')}
@@ -628,7 +620,7 @@ const AddNewCourseScreen = () => {
                 />
                 <Text style={styles.checkboxLabel}>For Sellers</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.checkboxItem}
                 onPress={() => handleCheckboxChange('buyers')}
