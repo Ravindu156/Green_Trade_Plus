@@ -56,7 +56,7 @@ const LoginScreen = ({ navigation }) => {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.appName}>Task Manager</Text>
+        <Text style={styles.appName}>Green Trade Plus</Text>
       </View>
 
       <View style={styles.formContainer}>
