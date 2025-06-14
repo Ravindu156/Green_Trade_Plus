@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, ScrollView } from 'react-native';
-import { Title, List, Avatar, Divider, Button, Card, Text } from 'react-native-paper';
+import { View, StyleSheet, Image, ScrollView, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const AccountScreen = () => {
@@ -15,7 +14,6 @@ const AccountScreen = () => {
         const userData = await AsyncStorage.getItem('user');
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        console.log("UserRole", parsedUser.profilePhotoPath);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -29,7 +27,6 @@ const AccountScreen = () => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('user');
-      // Navigate to login screen
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
@@ -42,6 +39,7 @@ const AccountScreen = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1976d2" />
         <Text>Loading profile...</Text>
       </View>
     );
@@ -51,127 +49,65 @@ const AccountScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Card style={styles.profileCard}>
+      <View style={styles.profileCard}>
         <View style={styles.profileHeader}>
-                    {user?.profilePhotoPath ? (
-            <>
-              {console.log(user.profilePhotoPath)}
-              <Image
-                source={{ uri: user.profilePhotoPath}}
-                style={styles.profilePic}
-              />
-            </>
+          {user?.profilePhotoPath ? (
+            <Image source={{ uri: user.profilePhotoPath }} style={styles.profilePic} />
           ) : (
-            <Avatar.Icon size={100} icon="account" style={styles.avatarIcon} />
+            <View style={styles.defaultAvatar}>
+              <Text style={styles.avatarText}>👤</Text>
+            </View>
           )}
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcomeText}>Hello,</Text>
-            <Title style={styles.name}>{user?.userName || 'User'}</Title>
+            <Text style={styles.name}>{user?.userName || 'User'}</Text>
             <Text style={styles.roleTag}>{isSeller ? 'Seller' : user.role}</Text>
           </View>
         </View>
-      </Card>
+      </View>
 
-      <Divider style={styles.divider} />
-
-      {isSeller ? (
-        <View style={styles.tutorSection}>
+      {isSeller && (
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Seller Dashboard</Text>
           <View style={styles.buttonGrid}>
-            <Button
-              mode="contained"
-              icon="plus-circle"
-              style={styles.actionButton}
-              contentStyle={styles.buttonContent}
-              onPress={() => navigation.navigate('SellersForm')}
-            >
-              Add New Product
-            </Button>
-            
-            <Button
-              mode="contained"
-              icon="pencil"
-              style={styles.actionButton}
-              contentStyle={styles.buttonContent}
-              onPress={() => navigation.navigate('EditProducts')}
-            >
-              Edit Products
-            </Button>
+            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('SellersForm')}>
+              <Text style={styles.buttonText}>➕ Add New Product</Text>
+            </TouchableOpacity>
 
-            <Button
-              mode="contained"
-              icon="view-list"
-              style={styles.actionButton}
-              contentStyle={styles.buttonContent}
-              onPress={() => navigation.navigate('AllProducts')}
-            >
-              View All Products
-            </Button>
+            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('EditProducts')}>
+              <Text style={styles.buttonText}>✏️ Edit Products</Text>
+            </TouchableOpacity>
 
-            <Button
-              mode="contained"
-              icon="cash-multiple"
-              style={styles.actionButton}
-              contentStyle={styles.buttonContent}
-              onPress={() => navigation.navigate('Earnings')}
-            >
-              Your Earnings
-            </Button>
+            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('AllProducts')}>
+              <Text style={styles.buttonText}>📦 View All Products</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Earnings')}>
+              <Text style={styles.buttonText}>💰 Your Earnings</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      ) : null}
+      )}
 
-      <List.Section style={styles.listSection}>
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>My Account</Text>
-        <List.Item
-          title="My Courses"
-          description="View enrolled or created courses"
-          left={() => <List.Icon color="#1976d2" icon="book" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('MyCourses')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Certificates"
-          description="View your earned certificates"
-          left={() => <List.Icon color="#1976d2" icon="certificate" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('Certificates')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Change Password"
-          description="Update your account password"
-          left={() => <List.Icon color="#1976d2" icon="lock-reset" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('ChangePassword')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Settings"
-          description="Manage your preferences"
-          left={() => <List.Icon color="#1976d2" icon="cog" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('Settings')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Contact Us"
-          description="Get help or send feedback"
-          left={() => <List.Icon color="#1976d2" icon="message-text" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('ContactUs')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Logout"
-          description="Sign out from your account"
-          left={() => <List.Icon color="#d32f2f" icon="logout" />}
-          onPress={handleLogout}
-          style={[styles.listItem, styles.logoutItem]}
-        />
-      </List.Section>
-      
+        {[
+          { title: 'My Courses', icon: '📚', screen: 'MyCourses' },
+          { title: 'Certificates', icon: '🎓', screen: 'Certificates' },
+          { title: 'Change Password', icon: '🔒', screen: 'ChangePassword' },
+          { title: 'Settings', icon: '⚙️', screen: 'Settings' },
+          { title: 'Contact Us', icon: '💬', screen: 'ContactUs' },
+        ].map((item, index) => (
+          <TouchableOpacity key={index} style={styles.listItem} onPress={() => navigation.navigate(item.screen)}>
+            <Text style={styles.listItemText}>{item.icon} {item.title}</Text>
+          </TouchableOpacity>
+        ))}
+
+        <TouchableOpacity style={[styles.listItem, styles.logoutItem]} onPress={handleLogout}>
+          <Text style={[styles.listItemText, { color: '#d32f2f' }]}>🚪 Logout</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.footer}>
         <Text style={styles.versionText}>Green Trade Plus v1.0.0</Text>
       </View>
@@ -180,113 +116,27 @@ const AccountScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f9ff',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileCard: {
-    margin: 16,
-    elevation: 4,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-  },
-  profilePic: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginRight: 20,
-    borderWidth: 3,
-    borderColor: '#1976d2',
-  },
-  avatarIcon: {
-    backgroundColor: '#1976d2',
-    marginRight: 20,
-  },
-  welcomeContainer: {
-    flex: 1,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1976d2',
-  },
-  roleTag: {
-    marginTop: 5,
-    fontSize: 14,
-    color: '#ffffff',
-    backgroundColor: '#1976d2',
-    paddingVertical: 3,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-    alignSelf: 'flex-start',
-  },
-  divider: {
-    marginVertical: 8,
-    height: 1,
-    backgroundColor: '#e0e0e0',
-  },
-  tutorSection: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-    paddingLeft: 16,
-  },
-  buttonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    width: '48%',
-    marginBottom: 15,
-    borderRadius: 8,
-    backgroundColor: '#1976d2',
-  },
-  buttonContent: {
-    height: 50,
-  },
-  listSection: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 16,
-    marginVertical: 10,
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 2,
-  },
-  listItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  logoutItem: {
-    borderBottomWidth: 0,
-  },
-  footer: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  versionText: {
-    color: '#999',
-    fontSize: 12,
-  },
+  container: { flex: 1, backgroundColor: '#f5f9ff' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  profileCard: { margin: 16, padding: 20, backgroundColor: '#fff', borderRadius: 12, elevation: 4 },
+  profileHeader: { flexDirection: 'row', alignItems: 'center' },
+  profilePic: { width: 100, height: 100, borderRadius: 50, marginRight: 20, borderWidth: 3, borderColor: '#1976d2' },
+  defaultAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#1976d2', justifyContent: 'center', alignItems: 'center', marginRight: 20 },
+  avatarText: { fontSize: 40, color: 'white' },
+  welcomeContainer: { flex: 1 },
+  welcomeText: { fontSize: 16, color: '#666' },
+  name: { fontSize: 24, fontWeight: 'bold', color: '#1976d2' },
+  roleTag: { marginTop: 5, fontSize: 14, color: '#fff', backgroundColor: '#1976d2', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 15, alignSelf: 'flex-start' },
+  section: { marginHorizontal: 16, marginTop: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 12 },
+  buttonGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  actionButton: { width: '48%', backgroundColor: '#1976d2', padding: 12, borderRadius: 8, marginBottom: 15 },
+  buttonText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
+  listItem: { backgroundColor: '#fff', padding: 16, marginBottom: 1, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  listItemText: { fontSize: 16 },
+  logoutItem: { backgroundColor: '#ffe5e5' },
+  footer: { padding: 16, alignItems: 'center' },
+  versionText: { color: '#999', fontSize: 12 },
 });
 
 export default AccountScreen;
