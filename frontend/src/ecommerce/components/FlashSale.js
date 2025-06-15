@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 
 
 export default function FlashSale({ navigation }) {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { API_URL } = Constants.expoConfig.extra;
 
     // Function to fetch items from backend
     const fetchItems = async () => {
@@ -14,7 +16,7 @@ export default function FlashSale({ navigation }) {
             setLoading(true);
             setError(null);
             
-            const response = await fetch('http://localhost:8080/api/items');
+            const response = await fetch(`http://${API_URL}:8080/api/items`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

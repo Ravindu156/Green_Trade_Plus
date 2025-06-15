@@ -78,7 +78,7 @@ const FarmerYourListings = ({ navigation }) => {
   const fetchBids = async (itemId) => {
     try {
       setLoadingBids(true);
-      const response = await axios.get(`http://localhost:8080/api/item-bids/${itemId}`);
+      const response = await axios.get(`http://${API_URL}:8080/api/item-bids/${itemId}`);
       // Sort bids in descending order by bid amount
       const sortedBids = response.data.sort((a, b) => b.bid - a.bid);
       setBids(sortedBids);
@@ -111,7 +111,7 @@ const FarmerYourListings = ({ navigation }) => {
           onPress: async () => {
             try {
               setClosingAuction(true);
-              await axios.patch(`http://localhost:8080/api/trade-items/${selectedItem.id}/close-auction`);
+              await axios.patch(`http://${API_URL}:8080/api/trade-items/${selectedItem.id}/close-auction`);
 
               setItems(prevItems =>
                 prevItems.map(item =>
@@ -157,7 +157,7 @@ const FarmerYourListings = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await axios.delete(`http://localhost:8080/api/trade-items/${id}`);
+              await axios.delete(`http://${API_URL}:8080/api/trade-items/${id}`);
               setItems(prevItems => prevItems.filter(item => item.id !== id));
 
               Alert.alert('Deleted', 'Item deleted successfully.');

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import Constants from 'expo-constants';
 
 export default function ProductDetails({ route, navigation }) {
   const { productId } = route.params;
   const [product, setProduct] = useState(null);
+  const { API_URL } = Constants.expoConfig.extra;
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/items/${productId}`)
+    axios.get(`http://${API_URL}:8080/api/items/${productId}`)
       .then(response => setProduct(response.data))
       .catch(error => console.error(error));
   }, [productId]);

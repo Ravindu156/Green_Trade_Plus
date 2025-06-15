@@ -9,25 +9,29 @@ import {
   StyleSheet,
   Button,
   FlatList,
+  ActivityIndicator,
+  Modal
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import Constants from 'expo-constants';
 
 export default function SellersForm() {
   const [productName, setProductName] = useState('');
-  const [productPhotos, setProductPhotos] = useState([]); // Changed to array
+  const [productPhotos, setProductPhotos] = useState([]);
   const [sizeChart, setSizeChart] = useState(null);
-  const [sizeDetails, setSizeDetails] = useState({});
   const [description, setDescription] = useState('');
   const [stock, setStock] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
   const [color, setColor] = useState('Red');
   const [category, setCategory] = useState('Clothing');
   const [size, setSize] = useState('M');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const { API_URL } = Constants.expoConfig.extra;
 
-  // Updated handleImagePick
   const handleImagePick = async (setter) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -38,7 +42,7 @@ export default function SellersForm() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3], // optional, adjust as needed
+      aspect: [4, 3],
       quality: 1,
     });
 
@@ -47,23 +51,28 @@ export default function SellersForm() {
     }
   };
 
-  // Updated handleProductPhotoPick
-  const handleProductPhotoPick = async () => {
-    if (productPhotos.length >= 5) {
-      alert('Maximum 5 photos allowed');
-      return;
-    }
-
+  const getPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       alert('Permission to access media library is required!');
+      return false;
+    }
+    return true;
+  };
+
+  const handleProductPhotoPick = async () => {
+    const granted = await getPermission();
+    if (!granted) return;
+
+    if (productPhotos.length >= 5) {
+      alert('Maximum 5 photos allowed');
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3], // optional
+      aspect: [4, 3],
       quality: 1,
     });
 
@@ -78,6 +87,9 @@ export default function SellersForm() {
 
   const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
+      setUploadProgress(0);
+
       const userData = await AsyncStorage.getItem('user');
       const token = await AsyncStorage.getItem('token');
       const user = JSON.parse(userData);
@@ -93,79 +105,44 @@ export default function SellersForm() {
       formData.append('price', unitPrice);
       formData.append('description', description);
 
-      // Enhanced logging for debugging
-      console.log('=== FormData Debug ===');
-      console.log('ProductPhotos array length:', productPhotos.length);
-      console.log('SizeChart exists:', !!sizeChart);
-
-      // Log each photo being added
-      productPhotos.forEach((photo, index) => {
-        console.log(`Photo ${index} details:`, {
+      productPhotos.forEach((photo) => {
+        formData.append('productPhotos', {
           uri: photo.uri,
-          fileName: photo.fileName,
-          type: photo.type,
-          hasUri: !!photo.uri
+          name: `product_${Date.now()}.${photo.uri.split('.').pop()}`,
+          type: `image/${photo.uri.split('.').pop() === 'png' ? 'png' : 'jpeg'}`
         });
       });
 
-      // FIXED: Handle file uploads for React Native Web
-      // Convert data URIs to Files for web, or use objects for native
-      const processFile = async (fileData, defaultName) => {
-        if (fileData.uri && fileData.uri.startsWith('data:')) {
-          // For React Native Web - convert data URI to File
-          const response = await fetch(fileData.uri);
-          const blob = await response.blob();
-          return new File([blob], fileData.fileName || defaultName, {
-            type: fileData.type || 'image/jpeg'
-          });
-        } else {
-          // For React Native mobile - use object format
-          return {
-            uri: fileData.uri,
-            name: fileData.fileName || defaultName,
-            type: fileData.type || 'image/jpeg',
-          };
-        }
-      };
-
-      // Process product photos
-      for (let i = 0; i < productPhotos.length; i++) {
-        const photo = productPhotos[i];
-        console.log(`Processing productPhoto[${i}]:`, photo.uri);
-
-        try {
-          const processedFile = await processFile(photo, `photo${i}.jpg`);
-          formData.append('productPhotos', processedFile);
-          console.log(`Added productPhoto[${i}] to FormData`);
-        } catch (error) {
-          console.error(`Error processing photo ${i}:`, error);
-        }
-      }
-
-      // Process size chart
       if (sizeChart) {
-        console.log('Processing sizeChart:', sizeChart.uri);
-        try {
-          const processedSizeChart = await processFile(sizeChart, 'size_chart.jpg');
-          formData.append('sizeChart', processedSizeChart);
-          console.log('Added sizeChart to FormData');
-        } catch (error) {
-          console.error('Error processing size chart:', error);
-        }
+        formData.append('sizeChart', {
+          uri: sizeChart.uri,
+          name: `size_chart_${Date.now()}.${sizeChart.uri.split('.').pop()}`,
+          type: `image/${sizeChart.uri.split('.').pop() === 'png' ? 'png' : 'jpeg'}`
+        });
       }
 
-      console.log('Sending request to backend...');
-      const response = await axios.post('http://localhost:8080/api/items', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        `http://${API_URL}:8080/api/items`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+          timeout: 30000,
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(progress);
+          },
+        }
+      );
 
-      console.log('Product submitted:', response.data);
+      console.log('Response:', response.data);
       alert('Product submitted successfully!');
-
-      // Reset form after successful submission
+      
+      // Reset form
       // setProductName('');
       // setProductPhotos([]);
       // setSizeChart(null);
@@ -177,16 +154,13 @@ export default function SellersForm() {
       // setSize('M');
 
     } catch (error) {
-      console.error('Error submitting product:', error.response?.data || error.message);
-      if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response headers:', error.response.headers);
-      }
-      alert('Failed to submit product. Check console for details.');
+      console.error('Error:', error);
+      alert(`Submission failed: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
-
-
 
   const renderProductPhoto = ({ item, index }) => (
     <View style={styles.photoContainer}>
@@ -210,13 +184,16 @@ export default function SellersForm() {
         value={productName}
         onChangeText={setProductName}
         placeholder="Enter product name"
+        editable={!isSubmitting}
       />
 
       <Text style={styles.label}>Category</Text>
       <Picker
         selectedValue={category}
         style={styles.input}
-        onValueChange={(itemValue) => setCategory(itemValue)}>
+        onValueChange={(itemValue) => setCategory(itemValue)}
+        enabled={!isSubmitting}
+      >
         <Picker.Item label="Plastic Boxes" value="Plastic Boxes" />
         <Picker.Item label="Steel Boxes" value="Steel Boxes" />
         <Picker.Item label="Wooden Boxes" value="Wooden Boxes" />
@@ -229,6 +206,7 @@ export default function SellersForm() {
         onChangeText={setStock}
         placeholder="Enter total stocks"
         keyboardType="numeric"
+        editable={!isSubmitting}
       />
 
       <Text style={styles.label}>Unit Price</Text>
@@ -238,13 +216,16 @@ export default function SellersForm() {
         onChangeText={setUnitPrice}
         placeholder="Enter unit price"
         keyboardType="numeric"
+        editable={!isSubmitting}
       />
 
       <Text style={styles.label}>Color</Text>
       <Picker
         selectedValue={color}
         style={styles.input}
-        onValueChange={(itemValue) => setColor(itemValue)}>
+        onValueChange={(itemValue) => setColor(itemValue)}
+        enabled={!isSubmitting}
+      >
         <Picker.Item label="Red" value="Red" />
         <Picker.Item label="Blue" value="Blue" />
         <Picker.Item label="Green" value="Green" />
@@ -256,7 +237,9 @@ export default function SellersForm() {
       <Picker
         selectedValue={size}
         style={styles.input}
-        onValueChange={(itemValue) => setSize(itemValue)}>
+        onValueChange={(itemValue) => setSize(itemValue)}
+        enabled={!isSubmitting}
+      >
         <Picker.Item label="XS" value="XS" />
         <Picker.Item label="S" value="S" />
         <Picker.Item label="M" value="M" />
@@ -268,7 +251,7 @@ export default function SellersForm() {
       <Button
         title="Add Product Photo"
         onPress={handleProductPhotoPick}
-        disabled={productPhotos.length >= 5}
+        disabled={productPhotos.length >= 5 || isSubmitting}
       />
 
       {productPhotos.length > 0 && (
@@ -289,21 +272,63 @@ export default function SellersForm() {
         value={description}
         onChangeText={setDescription}
         placeholder="Enter product description"
+        editable={!isSubmitting}
       />
 
       <Text style={styles.label}>Upload Size Chart</Text>
-      <Button title="Choose Size Chart Image" onPress={() => handleImagePick(setSizeChart)} />
+      <Button 
+        title="Choose Size Chart Image" 
+        onPress={() => handleImagePick(setSizeChart)} 
+        disabled={isSubmitting}
+      />
       {sizeChart && <Image source={{ uri: sizeChart.uri }} style={styles.image} />}
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Submit Product</Text>
+      <TouchableOpacity 
+        style={[
+          styles.submitButton, 
+          isSubmitting && styles.submitButtonDisabled
+        ]} 
+        onPress={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Submit Product</Text>
+        )}
       </TouchableOpacity>
+
+      {/* Upload Progress Modal */}
+      <Modal
+        transparent={true}
+        visible={isSubmitting}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <ActivityIndicator size="large" color="#28a745" />
+            <Text style={styles.modalText}>Uploading your product...</Text>
+            <Text style={styles.progressText}>{uploadProgress}%</Text>
+            <View style={styles.progressBarBackground}>
+              <View 
+                style={[
+                  styles.progressBar, 
+                  { width: `${uploadProgress}%` }
+                ]} 
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, backgroundColor: '#fff' },
+  container: { 
+    padding: 16, 
+    backgroundColor: '#fff' 
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -311,12 +336,17 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     color: '#333',
   },
-  label: { fontWeight: 'bold', marginTop: 16, marginBottom: 4 },
+  label: { 
+    fontWeight: 'bold', 
+    marginTop: 16, 
+    marginBottom: 4 
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
     borderRadius: 6,
+    backgroundColor: '#fff',
   },
   image: {
     width: 100,
@@ -352,12 +382,51 @@ const styles = StyleSheet.create({
     backgroundColor: '#28a745',
     padding: 14,
     marginTop: 30,
+    marginBottom: 20,
     alignItems: 'center',
     borderRadius: 10,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#6c757d',
   },
   submitButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 25,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '80%',
+  },
+  modalText: {
+    marginTop: 15,
+    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  progressText: {
+    marginBottom: 10,
+    fontSize: 14,
+    color: '#28a745',
+  },
+  progressBarBackground: {
+    height: 10,
+    width: '100%',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#28a745',
   },
 });

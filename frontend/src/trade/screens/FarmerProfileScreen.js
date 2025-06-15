@@ -22,6 +22,8 @@ const FarmerProfileScreen = ({ navigation }) => {
   const [tradeItemsCount, setTradeItemsCount] = useState(0);
   const { API_URL } = Constants.expoConfig.extra;
   console.log("Hello User Data", userData);
+  console.log("All User ID", userId);
+  console.log("All User ID", tradeItemsCount);
 
   useEffect(() => {
     // Fetch user data when component mounts
@@ -37,6 +39,8 @@ const FarmerProfileScreen = ({ navigation }) => {
       setUserId(userId)
       // Sample data - in a real app, this would come from an API
       console.log("All User Data", userData);
+      console.log("All User ID", userId);
+      console.log("All item ID", tradeItemsCount);
 
       setUserData({
         name: userData.userName,
@@ -64,14 +68,14 @@ const FarmerProfileScreen = ({ navigation }) => {
 
     try {
       // Fetch bids count
-      const bidsResponse = await fetch(`http://localhost:8080/api/item-bids/user/${userId}`);
+      const bidsResponse = await fetch(`http://${API_URL}:8080/api/item-bids/user/${userId}`);
       if (bidsResponse.ok) {
         const bidsData = await bidsResponse.json();
         setBidsCount(bidsData.length);
       }
 
       // Fetch trade items count
-      const tradeItemsResponse = await fetch(`http://localhost:8080/api/trade-items/user/${userId}`);
+      const tradeItemsResponse = await fetch(`http://${API_URL}:8080/api/trade-items/user/${userId}`);
       if (tradeItemsResponse.ok) {
         const tradeItemsData = await tradeItemsResponse.json();
         setTradeItemsCount(tradeItemsData.length);

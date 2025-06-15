@@ -15,6 +15,7 @@ import RegistrationSuccess from './RegistrationSuccess';
 
 // Progress indicator component
 import ProgressIndicator from './ProgressIndicator';
+import axios from 'axios';
 
 const RegistrationProcess = ({ navigation }) => {
   // States for all form data
@@ -74,6 +75,19 @@ const RegistrationProcess = ({ navigation }) => {
     setErrors({});
   };
 
+  // Email validation helper
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Password validation helper
+  const isValidPassword = (password) => {
+    // At least 8 characters, contains at least one letter and one number
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
   // Validation function based on current step
   const validateCurrentStep = () => {
     let stepErrors = {};
@@ -82,70 +96,96 @@ const RegistrationProcess = ({ navigation }) => {
     switch (currentStep) {
       case 1: // UserType validation
         if (!formData.role) {
-          stepErrors.userType = 'Please select a user type';
+          stepErrors.role = 'Please select a user type';
           isValid = false;
         }
         break;
-      
+
       case 2: // Personal info validation
-        if (!formData.firstName) {
+        if (!formData.firstName.trim()) {
           stepErrors.firstName = 'First name is required';
           isValid = false;
+        } else if (formData.firstName.trim().length < 2) {
+          stepErrors.firstName = 'First name must be at least 2 characters';
+          isValid = false;
         }
-        if (!formData.lastName) {
+
+        if (!formData.lastName.trim()) {
           stepErrors.lastName = 'Last name is required';
           isValid = false;
+        } else if (formData.lastName.trim().length < 2) {
+          stepErrors.lastName = 'Last name must be at least 2 characters';
+          isValid = false;
         }
-        if (!formData.userName) {
+
+        if (!formData.userName.trim()) {
           stepErrors.userName = 'Username is required';
           isValid = false;
-        } else if (formData.userName.length < 4) {
+        } else if (formData.userName.trim().length < 4) {
           stepErrors.userName = 'Username must be at least 4 characters';
           isValid = false;
         }
+
+        if (!formData.email.trim()) {
+          stepErrors.email = 'Email is required';
+          isValid = false;
+        } else if (!isValidEmail(formData.email)) {
+          stepErrors.email = 'Please enter a valid email address';
+          isValid = false;
+        }
+
         if (!formData.gender) {
           stepErrors.gender = 'Please select your gender';
           isValid = false;
         }
+
         if (!formData.password) {
           stepErrors.password = 'Password is required';
           isValid = false;
-        } else if (formData.password.length < 8) {
-          stepErrors.password = 'Password must be at least 8 characters';
+        } else if (!isValidPassword(formData.password)) {
+          stepErrors.password = 'Password must be at least 8 characters with letters and numbers';
           isValid = false;
         }
-        if (formData.password !== formData.confirmPassword) {
+
+        if (!formData.confirmPassword) {
+          stepErrors.confirmPassword = 'Please confirm your password';
+          isValid = false;
+        } else if (formData.password !== formData.confirmPassword) {
           stepErrors.confirmPassword = 'Passwords do not match';
           isValid = false;
         }
         break;
-      
+
       case 3: // Address validation
-        if (!formData.addressLineOne) {
+        if (!formData.addressLineOne.trim()) {
           stepErrors.addressLineOne = 'Address Line 1 is required';
           isValid = false;
         }
+
         if (!formData.province) {
           stepErrors.province = 'Province is required';
           isValid = false;
         }
+
         if (!formData.district) {
           stepErrors.district = 'District is required';
           isValid = false;
         }
-        if (!formData.city) {
+
+        if (!formData.city.trim()) {
           stepErrors.city = 'City is required';
           isValid = false;
         }
-        if (!formData.phoneNumber) {
+
+        if (!formData.phoneNumber.trim()) {
           stepErrors.phoneNumber = 'Phone number is required';
           isValid = false;
-        } else if (!/^[0-9]{10}$/.test(formData.phoneNumber)) {
+        } else if (!/^[0-9]{10}$/.test(formData.phoneNumber.replace(/\s/g, ''))) {
           stepErrors.phoneNumber = 'Enter a valid 10-digit phone number';
           isValid = false;
         }
         break;
-      
+
       case 4: // Final step validation
         if (!formData.acceptedTerms) {
           stepErrors.acceptedTerms = 'You must accept the terms and conditions';
@@ -155,108 +195,132 @@ const RegistrationProcess = ({ navigation }) => {
     }
 
     setErrors(stepErrors);
+    
+    if (!isValid) {
+      // Show first error message
+      const firstError = Object.values(stepErrors)[0];
+      showToast('error', 'Validation Error', firstError);
+    }
+    
     return isValid;
   };
 
   // Handle final submission
   const handleSubmit = async () => {
-    if (!validateCurrentStep()) {
-      return;
-    }
-  
-    if (isSubmitting) {
-      return;
-    }
-  
+    if (!validateCurrentStep()) return;
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
-  
+
     try {
       showToast('info', 'Processing', 'Creating your account...');
-  
+
+      // Prepare FormData for multipart/form-data
       const submitData = new FormData();
-  
-      for (const key in formData) {
-        if (formData.hasOwnProperty(key)) {
-          console.log("KEYS", key);
-  
-          if (key === 'profilePhoto' && formData[key]) {
-            const photo = formData[key];
-            console.log("PHOTO", photo);
-  
-            const fileUri = photo.uri;
-            const fileType = photo.mimeType || 'image/jpeg';
-            const fileName = photo.fileName || 'profilePhoto.jpg';
-  
-            // Check if the URI is a data URL (base64)
-            if (fileUri.startsWith('data:')) {
-              const base64String = fileUri.split(',')[1];
-              const byteCharacters = atob(base64String);
-              const byteNumbers = new Array(byteCharacters.length);
-              for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-              }
-              const byteArray = new Uint8Array(byteNumbers);
-              const blob = new Blob([byteArray], { type: fileType });
-              submitData.append('profilePhoto', blob, fileName); // Append Blob with filename
-              console.log("Appended Blob for profilePhoto");
-            } else {
-              // If the URI is a file path (common in React Native), fetch it as a Blob
-              try {
-                const response = await fetch(fileUri);
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const blob = await response.blob();
-                submitData.append('profilePhoto', blob, fileName);
-                console.log("Appended Blob from URI for profilePhoto");
-              } catch (error) {
-                console.error("Error fetching image:", error);
-                showToast('error', 'Upload Error', 'Failed to upload profile photo.');
-                setIsSubmitting(false);
-                return; // Exit handleSubmit on fetch error
-              }
-            }
-          } else {
-            const value = typeof formData[key] === 'boolean'
-              ? formData[key].toString()
-              : formData[key];
-            submitData.append(key, value);
-          }
+
+      // Append all text fields
+      submitData.append('role', formData.role);
+      submitData.append('firstName', formData.firstName.trim());
+      submitData.append('lastName', formData.lastName.trim());
+      submitData.append('userName', formData.userName.trim());
+      submitData.append('email', formData.email.trim().toLowerCase());
+      submitData.append('gender', formData.gender);
+      submitData.append('password', formData.password);
+      submitData.append('addressLineOne', formData.addressLineOne.trim());
+      submitData.append('addressLineTwo', formData.addressLineTwo.trim());
+      submitData.append('province', formData.province);
+      submitData.append('district', formData.district);
+      submitData.append('city', formData.city.trim());
+      submitData.append('phoneNumber', formData.phoneNumber.replace(/\s/g, ''));
+      submitData.append('acceptedTerms', formData.acceptedTerms.toString());
+
+      // Handle profile photo if exists
+      if (formData.profilePhoto) {
+        const photoUri = formData.profilePhoto.uri;
+        const filename = `profile_${Date.now()}.jpg`;
+        
+        submitData.append('profilePhoto', {
+          uri: photoUri,
+          name: filename,
+          type: 'image/jpeg'
+        });
+      }
+
+      // Make the API request
+      const response = await axios.post(
+        `http://${API_URL}:8080/api/auth/register`,
+        submitData,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 30000, // 30 second timeout
+        }
+      );
+
+      // Handle successful registration
+      if (response.status === 200 || response.status === 201) {
+        showToast('success', 'Success!', 'Account created successfully');
+        
+        // Move to success screen
+        setCurrentStep(5);
+        
+        // Optional: Store user data or token
+        if (response.data.token) {
+          // Store token if needed
+          console.log('Registration successful:', response.data);
         }
       }
-  
-      // Debug log: Use for development only
-      console.log('Submitting data:', JSON.stringify(Array.from(submitData.entries())));
-  
-      const response = await fetch(`http://${API_URL}:8080/api/auth/register`, { //ip address  should be replace with you IPV4 address(ipconfig)
-        method: 'POST',
-        body: submitData,
-        // Note: Do NOT set Content-Type here, let FormData handle it
-      });
-  
-      console.log('Response status:', response.status);
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-  
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Error parsing response:', e);
-        showToast('error', 'Response Error', 'Invalid response from server');
-        setIsSubmitting(false);
-        return;
-      }
-  
-      if (response.status === 201) {
-        showToast('success', 'Success', 'Account created successfully!');
-        setCurrentStep(5);
-      } else {
-        showToast('error', 'Registration Failed', data.message || 'Something went wrong');
-      }
+
     } catch (error) {
-      console.error('Registration Error:', error);
-      showToast('error', 'Network Error', 'Failed to connect to server');
+      console.error('Registration error:', error);
+      
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        switch (status) {
+          case 400:
+            errorMessage = data.message || 'Invalid input data. Please check your information.';
+            break;
+          case 401:
+            errorMessage = 'Authentication failed. Please try again.';
+            break;
+          case 403:
+            errorMessage = 'Access denied. Please contact support.';
+            break;
+          case 409:
+            errorMessage = 'Username or email already exists. Please choose different ones.';
+            break;
+          case 422:
+            errorMessage = 'Validation error. Please check your input.';
+            break;
+          case 500:
+            errorMessage = 'Server error. Please try again later.';
+            break;
+          default:
+            errorMessage = data.message || `Registration failed (${status})`;
+        }
+        
+        // Handle specific field errors
+        if (data.errors && typeof data.errors === 'object') {
+          setErrors(data.errors);
+        }
+        
+      } else if (error.request) {
+        // Network error
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else {
+        // Other error
+        errorMessage = 'An unexpected error occurred. Please try again.';
+      }
+      
+      showToast('error', 'Registration Failed', errorMessage);
+      
     } finally {
       setIsSubmitting(false);
     }
@@ -267,8 +331,8 @@ const RegistrationProcess = ({ navigation }) => {
     switch (currentStep) {
       case 1:
         return (
-          <UserTypeScreen 
-            formData={formData} 
+          <UserTypeScreen
+            formData={formData}
             updateFormData={updateFormData}
             goToNextStep={goToNextStep}
             errors={errors}
@@ -276,8 +340,8 @@ const RegistrationProcess = ({ navigation }) => {
         );
       case 2:
         return (
-          <PersonalInfoScreen 
-            formData={formData} 
+          <PersonalInfoScreen
+            formData={formData}
             updateFormData={updateFormData}
             goToNextStep={goToNextStep}
             goToPreviousStep={goToPreviousStep}
@@ -286,8 +350,8 @@ const RegistrationProcess = ({ navigation }) => {
         );
       case 3:
         return (
-          <AddressScreen 
-            formData={formData} 
+          <AddressScreen
+            formData={formData}
             updateFormData={updateFormData}
             goToNextStep={goToNextStep}
             goToPreviousStep={goToPreviousStep}
@@ -296,17 +360,18 @@ const RegistrationProcess = ({ navigation }) => {
         );
       case 4:
         return (
-          <ProfilePhotoScreen 
-            formData={formData} 
+          <ProfilePhotoScreen
+            formData={formData}
             updateFormData={updateFormData}
-            handleSubmit={handleSubmit} // Pass handleSubmit function
+            handleSubmit={handleSubmit}
             goToPreviousStep={goToPreviousStep}
             errors={errors}
+            isSubmitting={isSubmitting}
           />
         );
       case 5:
         return (
-          <RegistrationSuccess 
+          <RegistrationSuccess
             formData={formData}
             navigation={navigation}
           />
@@ -319,19 +384,18 @@ const RegistrationProcess = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
-      
+
       {currentStep < 5 && (
-        <ProgressIndicator 
-          currentStep={currentStep} 
-          totalSteps={4} 
+        <ProgressIndicator
+          currentStep={currentStep}
+          totalSteps={4}
         />
       )}
-      
+
       <View style={styles.contentContainer}>
         {renderStep()}
       </View>
-      
-      {/* This is the problem line - we'll remove the ref */}
+
       <Toast />
     </SafeAreaView>
   );

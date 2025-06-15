@@ -153,7 +153,7 @@ const SelectedItemDetailsScreen = ({ route }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/api/item-bids', {
+            const response = await fetch(`http://${API_URL}:8080/api/item-bids`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

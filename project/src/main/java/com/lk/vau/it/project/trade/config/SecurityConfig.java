@@ -22,18 +22,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable()) // Disable CSRF completely for API
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                    new AntPathRequestMatcher("/api/auth/**"),
-                    // Add your trade items API path here
-                    new AntPathRequestMatcher("/api/trade-items/**"),
-                    new AntPathRequestMatcher("/api/item-bids/**"),
-                    new AntPathRequestMatcher("/api/admin/price-settings/**"),
-                    new AntPathRequestMatcher("/api/academy/courses/**"),
-                    new AntPathRequestMatcher("/api/upload/**"),
-                    new AntPathRequestMatcher("/api/items/**")
+                    "/api/auth/**",
+                    "/api/trade-items/**",
+                    "/api/item-bids/**",
+                    "/api/admin/price-settings/**",
+                    "/api/academy/courses/**",
+                    "/api/upload/**",
+                    "/api/items/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
@@ -44,18 +43,26 @@ public class SecurityConfig {
         return http.build();
     }
 
-   @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(Arrays.asList("http://localhost:8081")); // REMOVE "*"
-    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-    config.setAllowedHeaders(Arrays.asList("*"));
-    config.setAllowCredentials(true);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        
+        // For development - replace with your actual React Native dev server IP
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:19006",  // Expo web
+            "http://192.168.1.100:19006" // Your local network IP
+        ));
+        
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        config.setExposedHeaders(Arrays.asList("Authorization"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-}
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
