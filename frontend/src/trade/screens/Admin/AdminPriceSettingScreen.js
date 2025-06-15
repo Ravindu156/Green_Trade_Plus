@@ -20,6 +20,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/colors';
 import { debounce } from 'lodash';
+import Constants from 'expo-constants';
 
 const AdminPriceSettingScreen = ({ navigation }) => {
     // State for price settings
@@ -29,6 +30,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [saving, setSaving] = useState({});
     const [savingAll, setSavingAll] = useState(false);
+    const { API_URL } = Constants.expoConfig.extra;
 
     // Filter and search state
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -50,7 +52,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
             const token = await AsyncStorage.getItem('token');
 
             // Fetch all added items
-            const response = await axios.get('http://localhost:8080/api/trade-items', {
+            const response = await axios.get(`http://${API_URL}:8080/api/trade-items`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -213,7 +215,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
             }
 
             // Step 1: Fetch all existing items from the server
-            const response = await axios.get('http://localhost:8080/api/admin/price-settings', {
+            const response = await axios.get(`http://${API_URL}:8080/api/admin/price-settings`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const existingItems = response.data;
@@ -242,14 +244,14 @@ const AdminPriceSettingScreen = ({ navigation }) => {
                 if (matchedItem) {
                     // Perform PUT if same name exists
                     return axios.put(
-                        `http://localhost:8080/api/admin/price-settings/${matchedItem.id}`,
+                        `http://${API_URL}:8080/api/admin/price-settings/${matchedItem.id}`,
                         data,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                 } else {
                     // Otherwise, perform POST
                     return axios.post(
-                        `http://localhost:8080/api/admin/price-settings`,
+                        `http://${API_URL}:8080/api/admin/price-settings`,
                         data,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );

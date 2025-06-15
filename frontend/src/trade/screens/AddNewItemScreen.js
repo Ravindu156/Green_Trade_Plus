@@ -166,12 +166,12 @@ const AddNewItemScreen = ({ navigation }) => {
         description,
         dateAdded: new Date().toISOString(),
       };
-      console.log("New ITEM",newItem);
+      console.log("New ITEM", newItem);
       try {
         // Make POST request to backend
         const response = await axios.post(`http://${API_URL}:8080/api/trade-items`, newItem);
-        
-        
+
+
         if (response.status === 201 || response.status === 200) {
           // Show success modal instead of Alert
           setSuccessModalVisible(true);
@@ -302,21 +302,20 @@ const AddNewItemScreen = ({ navigation }) => {
               {/* Dropdown List */}
               {showItemDropdown && filteredItems.length > 0 && (
                 <View style={styles.dropdown}>
-                  <FlatList
-                    data={filteredItems}
-                    keyExtractor={(item, index) => index.toString()}
-                    keyboardShouldPersistTaps="always"
-                    nestedScrollEnabled={true}
+                  <ScrollView
                     style={styles.dropdownList}
-                    renderItem={({ item }) => (
+                    nestedScrollEnabled={true}
+                  >
+                    {filteredItems.map((item, index) => (
                       <TouchableOpacity
+                        key={index}
                         style={styles.dropdownItem}
                         onPress={() => handleItemSelect(item)}
                       >
                         <Text style={styles.dropdownItemText}>{item}</Text>
                       </TouchableOpacity>
-                    )}
-                  />
+                    ))}
+                  </ScrollView>
                 </View>
               )}
 
