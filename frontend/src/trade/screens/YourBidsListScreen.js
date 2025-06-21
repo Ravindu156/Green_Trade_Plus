@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ const YourBidsListScreen = ({ navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [bidDetails, setBidDetails] = useState(null);
     const [farmerInfo, setFarmerInfo] = useState(null);
+    const { API_URL } = Constants.expoConfig.extra;
 
     const categories = ['all', 'vegetables', 'fruits', 'grains', 'dairy', 'meat'];
     const sortOptions = [
@@ -52,18 +54,18 @@ const YourBidsListScreen = ({ navigation }) => {
             const user = JSON.parse(userData);
             const userId = user.id;
             setLoading(true);
-            const response = await fetch(`http://localhost:8080/api/item-bids/user/${userId}`);
+            const response = await fetch(`http://${API_URL}:8080/api/item-bids/user/${userId}`);
             const bidsData = await response.json();
 
             // Fetch item details for each bid
             const bidsWithDetails = await Promise.all(
                 bidsData.map(async (bid) => {
                     try {
-                        const itemResponse = await fetch(`http://localhost:8080/api/trade-items/${bid.itemId}`);
+                        const itemResponse = await fetch(`http://${API_URL}:8080/api/trade-items/${bid.itemId}`);
                         const itemData = await itemResponse.json();
 
                         // Fetch max bid for this item
-                        const maxBidResponse = await fetch(`http://localhost:8080/api/item-bids/${bid.itemId}/max`);
+                        const maxBidResponse = await fetch(`http://${API_URL}:8080/api/item-bids/${bid.itemId}/max`);
                         const maxBidData = await maxBidResponse.json();
 
                         return {
@@ -137,7 +139,7 @@ const YourBidsListScreen = ({ navigation }) => {
 
             // Fetch farmer info
             if (bid.farmerId) {
-                const farmerResponse = await fetch(`http://localhost:8080/api/auth/${bid.farmerId}/basic-info`);
+                const farmerResponse = await fetch(`http://${API_URL}:8080/api/auth/${bid.farmerId}/basic-info`);
                 const farmerData = await farmerResponse.json();
                 setFarmerInfo(farmerData);
             }
@@ -166,7 +168,7 @@ const YourBidsListScreen = ({ navigation }) => {
 
     const deleteBid = async (bidId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/item-bids/${bidId}`, {
+            const response = await fetch(`http://${API_URL}:8080/api/item-bids/${bidId}`, {
                 method: 'DELETE',
             });
 
