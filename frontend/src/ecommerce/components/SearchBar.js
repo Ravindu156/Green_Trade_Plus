@@ -1,66 +1,59 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { Ionicons} from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-export default function searchBar() {
+export default function SearchBar() {
+  const [query, setQuery] = useState('');
+  const navigation = useNavigation();
+
+  const handleSearch = () => {
+    if (query.trim()) {
+      navigation.navigate('SearchResults', { query });
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.searchBarContainer}>
-        <Ionicons name="menu" size={25} color="black" style={styles.icon} />
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={30} color="gray" />
-          <TextInput
-            placeholder="Search the Products"
-            style={styles.input}
-          />
-          {/*<Ionicons name="mic" size={20} color="gray" style={{ marginHorizontal: 5 }} />
-          <MaterialIcons name="qr-code-scanner" size={20} color="gray" />*/}
-        </View>
-        {/*<Ionicons name="cart" size={24} color="black" style={styles.icon} />*/}
-
-        <TouchableOpacity style={styles.searchButton}>
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity>
-        </View>
-    </ScrollView>
+    <View style={styles.searchContainer}>
+      <Ionicons name="search" size={24} color="#777" />
+      <TextInput
+        style={styles.input}
+        placeholder="Search the Products"
+        value={query}
+        onChangeText={setQuery}
+        returnKeyType="search"
+        onSubmitEditing={handleSearch}
+      />
+      <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+        <Text style={styles.buttonText}>Search</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        paddingTop: 50,
-        backgroundColor: '#fff',
-        paddingHorizontal: 10,
-      },
-  searchBarContainer: {
+  searchContainer: {
     flexDirection: 'row',
+    padding: 10,
     alignItems: 'center',
-    marginBottom: 10,
-  },
-  icon: {
-    marginHorizontal: 5,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#eee',
+    backgroundColor: '#fff',
     borderRadius: 10,
-    paddingHorizontal: 10,
+    margin: 10,
+    elevation: 3,
   },
   input: {
     flex: 1,
-    marginHorizontal: 5,
+    marginLeft: 10,
+    fontSize: 16,
   },
   searchButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    marginLeft: 5,
+    backgroundColor: '#1976d2',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  searchButtonText: {
-    color: 'white',
+  buttonText: {
+    color: '#fff',
     fontWeight: 'bold',
   },
 });
