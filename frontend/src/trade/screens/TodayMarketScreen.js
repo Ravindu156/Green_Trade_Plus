@@ -196,21 +196,21 @@ const TodayMarketScreen = ({ route }) => {
     <TouchableOpacity
       style={styles.itemCard}
       onPress={() => {
-        if (item.isBidActive) {
+        
           navigation.navigate('SelectedItemDetailsScreen', { item });
-        }
+        
       }}
     >
-      {!item.isBidActive && (
+      {/* {!item.isBidActive && (
         <View style={styles.soldOutOverlay}>
           <Text style={styles.soldOutText}>Sold Out</Text>
         </View>
-      )}
+      )} */}
       <Image
         source={item.image}
         style={[
           styles.itemImage,
-          !item.isBidActive && styles.soldOutImage
+          //!item.isBidActive && styles.soldOutImage
         ]}
       />
       <View style={styles.itemInfo}>

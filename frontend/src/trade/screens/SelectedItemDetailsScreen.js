@@ -34,45 +34,90 @@ const SelectedItemDetailsScreen = ({ route }) => {
     const [bidAmount, setBidAmount] = useState("");
     const [currentUserId, setCurrentUserId] = useState(1); // Assuming logged in user ID is 1
     const { API_URL } = Constants.expoConfig.extra;
-    
 
-  const fallbackImage = require('../../../assets/TradeItems/Vegetables.jpg');
+
+    const fallbackImage = require('../../../assets/TradeItems/Vegetables.jpg');
 
     useEffect(() => {
         fetchTradeItems();
     }, []);
 
+    const isToday = (dateString) => {
+        if (!dateString) return false;
+
+        const date = new Date(dateString);
+        const today = new Date();
+
+        return (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+        );
+    };
+
     const fetchTradeItems = async () => {
         const userData = await AsyncStorage.getItem('user');
         const user = JSON.parse(userData);
         const UserId = user.id;
-        console.log("UserIDENTITY",UserId);
-        
-        setCurrentUserId(UserId)
+        console.log("UserIDENTITY", UserId);
+
+        setCurrentUserId(UserId);
         setLoading(true);
         setError(null);
         try {
-            // 1. Fetch trade items for this particular item
+            // 1. Fetch all trade items
             const response = await fetch(`http://${API_URL}:8080/api/trade-items`);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch trade items');
             }
 
-            const data = await response.json();
-            console.log("dataa",data);
-            
-            // Filter the items by name to match the selected item
-            const filteredItems = data.filter(tradeItem => tradeItem.name === item.name);
-            setTradeItems(filteredItems);
+            const allTradeItems = await response.json();
 
-            // 2. Fetch farmer details for each trade item
-            const farmerPromises = filteredItems.map(tradeItem => fetchFarmerInfo(tradeItem.user.id));
-            await Promise.all(farmerPromises);
+            // 2. Filter items by name and date
+            const filteredItems = allTradeItems.filter(tradeItem =>
+                tradeItem.name === item.name &&
+                isToday(tradeItem.dateAdded)
+            );
 
-            // 3. Fetch max bids for each trade item
-            const bidPromises = filteredItems.map(tradeItem => fetchMaxBid(tradeItem.id));
-            await Promise.all(bidPromises);
+            // 3. Process each item to include farmer info and max bid
+            const processedItems = await Promise.all(
+                filteredItems.map(async (tradeItem) => {
+                    // Get max bid for this item
+                    let maxBid;
+                    try {
+                        const bidResponse = await fetch(`http://${API_URL}:8080/api/item-bids/${tradeItem.id}/max`);
+                        if (bidResponse.ok) {
+                            maxBid = await bidResponse.json();
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching max bid for item ${tradeItem.id}:`, err);
+                    }
+
+                    return {
+                        ...tradeItem,
+                        user: tradeItem.user, // Keep the full user object
+                        maxBid,
+                        isBidActive: tradeItem.isBidActive !== false
+                    };
+                })
+            );
+
+            // 4. Update state with all matching items
+            setTradeItems(processedItems);
+
+            // 5. Extract unique farmers and store their info
+            const uniqueFarmers = {};
+            processedItems.forEach(item => {
+                if (item.user && item.user.id) {
+                    uniqueFarmers[item.user.id] = {
+                        userName: item.user.userName,
+                        firstName: item.user.firstName,
+                        lastName: item.user.lastName
+                    };
+                }
+            });
+            setFarmers(uniqueFarmers);
 
         } catch (err) {
             console.error('Error fetching trade items:', err);
@@ -87,7 +132,7 @@ const SelectedItemDetailsScreen = ({ route }) => {
         try {
             const response = await fetch(`http://${API_URL}:8080/api/auth/${userId}/basic-info`);
             console.log(`http://${API_URL}:8080/api/auth/${userId}/basic-info`);
-            
+
             if (!response.ok) {
                 throw new Error(`Failed to fetch farmer info for user ${userId}`);
             }
@@ -181,25 +226,55 @@ const SelectedItemDetailsScreen = ({ route }) => {
     };
 
     const renderTradeItem = ({ item: tradeItem, index }) => {
-        const farmer = farmers[tradeItem.user.id] || { userName: "Loading...", firstName: "Loading..." };
+        // Get farmer info directly from the item or from state
+        const farmer = tradeItem.user || farmers[tradeItem.user?.id] || {
+            userName: "Unknown",
+            firstName: "Unknown"
+        };
+        const isSoldOut = !tradeItem.isBidActive;
 
         return (
-            <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.numberCell]}>{index + 1}</Text>
-                <Text style={[styles.tableCell, styles.farmerCell]}>{farmer.userName}</Text>
-                <Text style={[styles.tableCell, styles.quantityCell]}>
+            <View style={[
+                styles.tableRow,
+                isSoldOut && styles.soldOutRow
+            ]}>
+                <Text style={[
+                    styles.tableCell,
+                    styles.numberCell,
+                    isSoldOut && styles.soldOutText
+                ]}>
+                    {index + 1}
+                </Text>
+                <Text style={[
+                    styles.tableCell,
+                    styles.farmerCell,
+                    isSoldOut && styles.soldOutText
+                ]}>
+                    {farmer.userName || `${farmer.firstName} ${farmer.lastName}`.trim()}
+                </Text>
+                <Text style={[
+                    styles.tableCell,
+                    styles.quantityCell,
+                    isSoldOut && styles.soldOutText
+                ]}>
                     {tradeItem.quantity} {tradeItem.unit}
                 </Text>
                 <View style={[styles.tableCell, styles.bidCell]}>
-                    <Text style={styles.bidText}>
-                        {tradeItem.maxBid ? `RS.${tradeItem.maxBid.toFixed(2)}` : 'No bids'}
+                    <Text style={[
+                        styles.bidText,
+                        isSoldOut && styles.soldOutText
+                    ]}>
+                        {isSoldOut ? 'SOLD OUT' :
+                            (tradeItem.maxBid ? `RS.${tradeItem.maxBid.toFixed(2)}` : 'No bids')}
                     </Text>
-                    <TouchableOpacity
-                        style={styles.bidButton}
-                        onPress={() => openBidModal(tradeItem)}
-                    >
-                        <Text style={styles.bidButtonText}>Bid</Text>
-                    </TouchableOpacity>
+                    {!isSoldOut && (
+                        <TouchableOpacity
+                            style={styles.bidButton}
+                            onPress={() => openBidModal(tradeItem)}
+                        >
+                            <Text style={styles.bidButtonText}>Bid</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         );
@@ -341,6 +416,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f9f9f9',
+    },
+    soldOutRow: {
+        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    },
+    soldOutText: {
+        color: 'red',
+        textDecorationLine: 'line-through',
     },
     header: {
         flexDirection: 'row',
