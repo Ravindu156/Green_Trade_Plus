@@ -1,38 +1,52 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-export default function Category(){
-    return(
-        <View>
-              <Text style={styles.sectionTitle}>Categories</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-                {['Plastic Boxes', 'Steel Boxes', 'Wooden Boxes'].map((category, index) => (
-                  <TouchableOpacity key={index} style={styles.categoryBox}>
-                    <FontAwesome5 name="box" size={24} color="black" />
-                    <Text style={styles.categoryText}>{category}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              </View>
-    );
-};
+export default function Category() {
+  const navigation = useNavigation();
+
+  const handleCategoryPress = (category) => {
+    navigation.navigate('CategoryItems', { category });
+  };
+
+  return (
+    <View>
+      <Text style={styles.title}>Categories</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
+        {['Plastic Boxes', 'Steel Boxes', 'Wooden Boxes'].map((category, index) => (
+          <TouchableOpacity key={index} style={styles.box} onPress={() => handleCategoryPress(category)}>
+            <FontAwesome5 name="box" size={24} color="#333" />
+            <Text style={styles.text}>{category}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-    categoryContainer: {
-      flexDirection: 'row',
-      marginVertical: 10,
-    },
-    categoryBox: {
-      alignItems: 'center',
-      marginRight: 15,
-    },
-    categoryText: {
-      marginTop: 5,
-    },
-    sectionTitle: {
-        fontWeight: 'bold',
-        fontSize: 18,
-        marginTop: 10,
-      },
-  });
-  
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginHorizontal: 15,
+    marginBottom: 10,
+  },
+  scroll: {
+    paddingHorizontal: 10,
+  },
+  box: {
+    backgroundColor: '#e0f7fa',
+    borderRadius: 12,
+    padding: 15,
+    marginRight: 10,
+    alignItems: 'center',
+    width: 120,
+  },
+  text: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+});

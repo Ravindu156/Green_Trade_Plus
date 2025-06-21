@@ -1,290 +1,239 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Dimensions,
+} from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 
+const screenWidth = Dimensions.get('window').width;
+const cardWidth = (screenWidth - 30) / 2;
 
 export default function FlashSale({ navigation }) {
-    const [items, setItems] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const { API_URL } = Constants.expoConfig.extra;
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { API_URL } = Constants.expoConfig.extra;
 
-    // Function to fetch items from backend
-    const fetchItems = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-            const response = await fetch(`http://${API_URL}:8080/api/items`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            setItems(data);
-        } catch (err) {
-            console.error('Error fetching items:', err);
-            setError(err.message);
-            Alert.alert(
-                'Error',
-                'Failed to load items. Please check your connection and try again.',
-                [
-                    { text: 'Retry', onPress: fetchItems },
-                    { text: 'Cancel', style: 'cancel' }
-                ]
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Fetch items on component mount
-    useEffect(() => {
-        fetchItems();
-    }, []);
-
-    // Function to get display image for item
-    const getItemImage = (item) => {
-        if (item.productPhotoUrls && item.productPhotoUrls.length > 0) {
-            return { uri: item.productPhotoUrls[0] };
-        }
-        // Fallback placeholder image
-        return { uri: `https://via.placeholder.com/100x100.png?text=${encodeURIComponent(item.itemName.substring(0, 10))}` };
-    };
-
-    // Function to format price
-    const formatPrice = (price) => {
-        return `Rs.${price.toFixed(2)}`;
-    };
-
-    // Render loading state
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#007bff" />
-                <Text style={styles.loadingText}>Loading flash sale items...</Text>
-            </View>
-        );
+  const fetchItems = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://${API_URL}:8080/api/items`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      setItems(data);
+    } catch (err) {
+      setError(err.message);
+      Alert.alert('Error', 'Failed to load items.', [
+        { text: 'Retry', onPress: fetchItems },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Render error state
-    if (error && items.length === 0) {
-        return (
-            <View style={styles.errorContainer}>
-                <MaterialIcons name="error-outline" size={48} color="#ff6b6b" />
-                <Text style={styles.errorText}>Unable to load items</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={fetchItems}>
-                    <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-            </View>
-        );
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const getItemImage = (item) => {
+    if (item.productPhotoUrls && item.productPhotoUrls.length > 0) {
+      return { uri: item.productPhotoUrls[0] };
     }
+    return {
+      uri: `https://via.placeholder.com/100x100.png?text=${encodeURIComponent(item.itemName.substring(0, 10))}`,
+    };
+  };
 
+  const formatPrice = (price) => `Rs.${price.toFixed(2)}`;
+
+  // ✅ Only show latest 5 items
+  const latestItems = [...items]
+    .sort((a, b) => b.item_id - a.item_id) // If newer items have higher ID
+    .slice(0, 5);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      key={item.item_id}
+      style={styles.card}
+      onPress={() => navigation.navigate('ProductDetails', { productId: item.item_id })}
+    >
+      <Image source={getItemImage(item)} style={styles.image} />
+      {item.stock < 10 && (
+        <View style={styles.lowStockBadge}>
+          <Text style={styles.lowStockText}>Low Stock</Text>
+        </View>
+      )}
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={2}>{item.itemName}</Text>
+        <Text style={styles.category}>{item.category}</Text>
+        <Text style={styles.details}>{item.size} • {item.color}</Text>
+        <Text style={styles.price}>{formatPrice(item.price)}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.headerContainer}>
-                <Text style={styles.sectionTitle}>Flash Sale</Text>
-                <TouchableOpacity onPress={fetchItems}>
-                    <Ionicons name="refresh" size={20} color="#007bff" />
-                </TouchableOpacity>
-            </View>
-            
-            {items.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                    <FontAwesome5 name="shopping-bag" size={48} color="#ccc" />
-                    <Text style={styles.emptyText}>No items available</Text>
-                </View>
-            ) : (
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
-                    style={styles.productScroll}
-                    contentContainerStyle={styles.productScrollContent}
-                >
-                    {items.map((item) => (
-                        <TouchableOpacity 
-                            key={item.item_id} 
-                            style={styles.productCard}
-                            onPress={() => navigation.navigate('ProductDetails', { productId: item.item_id })}
-                        >
-                            <View style={styles.imageContainer}>
-                                <Image
-                                    source={getItemImage(item)}
-                                    style={styles.productImage}
-                                    resizeMode="cover"
-                                />
-                                {item.stock < 10 && (
-                                    <View style={styles.lowStockBadge}>
-                                        <Text style={styles.lowStockText}>Low Stock</Text>
-                                    </View>
-                                )}
-                            </View>
-                            
-                            <View style={styles.productInfo}>
-                                <Text style={styles.productName} numberOfLines={2}>
-                                    {item.itemName}
-                                </Text>
-                                
-                                <View style={styles.productDetails}>
-                                    <Text style={styles.category}>{item.category}</Text>
-                                    <Text style={styles.sizeColor}>
-                                        {item.size} • {item.color}
-                                    </Text>
-                                </View>
-                                
-                                <View style={styles.priceContainer}>
-                                    <Text style={styles.price}>{formatPrice(item.price)}</Text>
-                                    <Text style={styles.stock}>Stock: {item.stock}</Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            )}
-        </ScrollView>
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#007bff" />
+        <Text style={styles.loadingText}>Loading flash sale items...</Text>
+      </View>
     );
+  }
+
+  if (error && items.length === 0) {
+    return (
+      <View style={styles.center}>
+        <MaterialIcons name="error-outline" size={48} color="#ff6b6b" />
+        <Text style={styles.errorText}>Unable to load items</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchItems}>
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (latestItems.length === 0) {
+    return (
+      <View style={styles.center}>
+        <FontAwesome5 name="shopping-bag" size={48} color="#ccc" />
+        <Text style={styles.emptyText}>No items available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}> Flash Sale</Text>
+        <TouchableOpacity onPress={fetchItems}>
+          <Ionicons name="refresh" size={20} color="#007bff" />
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        data={latestItems}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.item_id.toString()}
+        numColumns={2}
+        key={2}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 10,
-        marginBottom: 15,
-        paddingHorizontal: 5,
-    },
-    sectionTitle: {
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    productScroll: {
-        flexDirection: 'row',
-    },
-    productScrollContent: {
-        paddingRight: 10,
-    },
-    productCard: {
-        backgroundColor: '#f9f9f9',
-        borderRadius: 12,
-        marginRight: 12,
-        overflow: 'hidden',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        width: 160,
-    },
-    imageContainer: {
-        position: 'relative',
-    },
-    productImage: {
-        width: '100%',
-        height: 120,
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-    },
-    lowStockBadge: {
-        position: 'absolute',
-        top: 5,
-        right: 5,
-        backgroundColor: '#ff6b6b',
-        borderRadius: 8,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-    },
-    lowStockText: {
-        color: 'white',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    productInfo: {
-        padding: 10,
-    },
-    productName: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginBottom: 5,
-        color: '#333',
-    },
-    productDetails: {
-        marginBottom: 8,
-    },
-    category: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 2,
-    },
-    sizeColor: {
-        fontSize: 11,
-        color: '#888',
-    },
-    priceContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    price: {
-        color: '#e74c3c',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    stock: {
-        fontSize: 10,
-        color: '#27ae60',
-        fontWeight: '500',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 50,
-    },
-    loadingText: {
-        marginTop: 10,
-        color: '#666',
-        fontSize: 16,
-    },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 50,
-    },
-    errorText: {
-        marginTop: 10,
-        marginBottom: 20,
-        color: '#ff6b6b',
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    retryButton: {
-        backgroundColor: '#007bff',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 8,
-    },
-    retryButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    emptyContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 50,
-    },
-    emptyText: {
-        marginTop: 10,
-        color: '#999',
-        fontSize: 16,
-    },
-    icon: {
-        marginHorizontal: 5,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: 10,
+    paddingHorizontal: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  title: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  list: {
+    paddingBottom: 20,
+  },
+  card: {
+    width: cardWidth,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    marginBottom: 12,
+    marginHorizontal: 5,
+    overflow: 'hidden',
+    elevation: 2,
+  },
+  image: {
+    width: '100%',
+    height: 120,
+  },
+  info: {
+    padding: 8,
+  },
+  name: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+    color: '#333',
+  },
+  category: {
+    fontSize: 12,
+    color: '#666',
+  },
+  details: {
+    fontSize: 11,
+    color: '#888',
+    marginBottom: 4,
+  },
+  price: {
+    color: '#e74c3c',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  lowStockBadge: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: '#ff6b6b',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    zIndex: 1,
+  },
+  lowStockText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+    fontSize: 16,
+  },
+  errorText: {
+    marginTop: 10,
+    color: '#ff6b6b',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 10,
+    backgroundColor: '#007bff',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    marginTop: 10,
+    color: '#999',
+    fontSize: 16,
+  },
 });
