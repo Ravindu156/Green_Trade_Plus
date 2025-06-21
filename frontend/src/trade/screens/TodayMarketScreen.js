@@ -66,31 +66,58 @@ const TodayMarketScreen = ({ route }) => {
   const fetchMarketItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://${API_URL}:8080/api/admin/price-settings`);
-
-      if (!response.ok) {
+      // Fetch price settings
+      const priceSettingsResponse = await fetch(`http://${API_URL}:8080/api/admin/price-settings`);
+      if (!priceSettingsResponse.ok) {
         throw new Error('Failed to fetch market items');
       }
+      const priceSettingsData = await priceSettingsResponse.json();
 
-      const data = await response.json();
+      // Fetch trade items details for each item
+      const itemsWithDetails = await Promise.all(
+        priceSettingsData.map(async (item) => {
+          try {
+            const tradeItemResponse = await fetch(`http://${API_URL}:8080/api/trade-items/${item.itemId}`);
+            if (!tradeItemResponse.ok) {
+              console.error(`Failed to fetch trade item ${item.itemId}`);
+              return {
+                ...item,
+                isBidActive: true, // Default to true if fetch fails
+              };
+            }
+            const tradeItemData = await tradeItemResponse.json();
+            return {
+              ...item,
+              isBidActive: tradeItemData.isBidActive,
+            };
+          } catch (err) {
+            console.error(`Error fetching trade item ${item.itemId}:`, err);
+            return {
+              ...item,
+              isBidActive: true, // Default to true if fetch fails
+            };
+          }
+        })
+      );
 
       // Transform the data to match our component needs
-      const transformedData = data.map(item => ({
+      const transformedData = itemsWithDetails.map(item => ({
         id: item.id.toString(),
         name: item.itemName,
         price: item.pricePerUnit,
         category: item.category,
         unit: item.unit,
-        // Using placeholder images based on category
         image: imageMap[item.itemName] || fallbackImage,
-        lastUpdated: item.lastUpdated
+        lastUpdated: item.lastUpdated,
+        isBidActive: item.isBidActive, // Add this new property
+        itemId: item.itemId, // Keep itemId for navigation
       }));
 
       setMarketItems(transformedData);
       setFilteredItems(transformedData);
 
       // Extract unique categories
-      const uniqueCategories = ['All', ...new Set(data.map(item =>
+      const uniqueCategories = ['All', ...new Set(priceSettingsData.map(item =>
         item.category.charAt(0).toUpperCase() + item.category.slice(1)
       ))];
       setCategories(uniqueCategories);
@@ -168,9 +195,24 @@ const TodayMarketScreen = ({ route }) => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.itemCard}
-      onPress={() => navigation.navigate('SelectedItemDetailsScreen', { item })}
+      onPress={() => {
+        if (item.isBidActive) {
+          navigation.navigate('SelectedItemDetailsScreen', { item });
+        }
+      }}
     >
-      <Image source={item.image} style={styles.itemImage} />
+      {!item.isBidActive && (
+        <View style={styles.soldOutOverlay}>
+          <Text style={styles.soldOutText}>Sold Out</Text>
+        </View>
+      )}
+      <Image
+        source={item.image}
+        style={[
+          styles.itemImage,
+          !item.isBidActive && styles.soldOutImage
+        ]}
+      />
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.itemPrice}>RS.{item.price.toFixed(2)}/-</Text>
@@ -402,6 +444,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9f9f9',
+  },
+  soldOutOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    zIndex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  soldOutText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  soldOutImage: {
+    opacity: 0.6,
   },
   header: {
     flexDirection: 'row',
