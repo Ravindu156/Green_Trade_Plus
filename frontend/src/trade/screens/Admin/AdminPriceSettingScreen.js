@@ -45,60 +45,69 @@ const AdminPriceSettingScreen = ({ navigation }) => {
     const [timeRemaining, setTimeRemaining] = useState('');
     const [resetTime, setResetTime] = useState(null);
 
+    const isToday = (dateString) => {
+        if (!dateString) return false;
+
+        const date = new Date(dateString);
+        const today = new Date();
+
+        return (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+        );
+    };
+
     // Fetch all price settings from the backend
     const fetchPriceSettings = async () => {
         try {
             setLoading(true);
             const token = await AsyncStorage.getItem('token');
 
-            // Fetch all added items
+            // Fetch all trade items
             const response = await axios.get(`http://${API_URL}:8080/api/trade-items`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             const items = response.data;
 
+            // Filter to only include items updated today
+            const todayItems = items.filter(item => isToday(item.dateAdded));
+
             // Merge duplicate items by name and sum their quantities
             const itemMap = new Map();
 
-            items.forEach(item => {
+            todayItems.forEach(item => {
                 if (itemMap.has(item.name)) {
                     const existingItem = itemMap.get(item.name);
-                    existingItem.quantity += item.quantity; // Sum quantities
+                    existingItem.quantity += item.quantity;
                 } else {
-                    // Clone the item to avoid modifying the original
                     itemMap.set(item.name, { ...item });
                 }
             });
 
-            // Convert map back to array
             const mergedItems = Array.from(itemMap.values());
+            console.log('Today\'s Merged Items:', mergedItems);
 
-            // Log the merged items
-            console.log('Merged Items (no duplicates):', mergedItems);
-
-            // Extract unique categories from merged items
+            // Extract unique categories from today's items
             const categoriesResponse = [...new Set(mergedItems.map(item => item.category))];
 
-            // Calculate next reset time at midnight (00:00)
+            // Calculate next reset time at midnight
             const now = new Date();
             const nextMidnight = new Date(
                 now.getFullYear(),
                 now.getMonth(),
-                now.getDate() + 1, // Next day
-                0, 0, 0, 0 // Midnight
+                now.getDate() + 1,
+                0, 0, 0, 0
             );
 
-            // Set the reset time to next midnight
             setResetTime(nextMidnight);
-
-            // Set state with merged items
             setPriceSettings(mergedItems);
             setOriginalSettings(mergedItems);
             setCategories(categoriesResponse);
         } catch (error) {
             console.error('Failed to fetch price settings:', error);
-            Alert.alert('Error', 'Failed to load price settings. Please try again.');
+            Alert.alert('Error', 'Failed to load today\'s price settings. Please try again.');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -232,7 +241,7 @@ const AdminPriceSettingScreen = ({ navigation }) => {
                 // Match by name
                 const matchedItem = existingItems.find(existing => existing.itemName === item.name);
                 console.log("matcheditems", item);
-                
+
                 const data = {
                     itemId: item.id, // only if it exists
                     category: item.category,

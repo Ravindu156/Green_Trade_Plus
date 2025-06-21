@@ -115,6 +115,17 @@ const TodayMarketScreen = ({ route }) => {
     }
   };
 
+  const isToday = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
   // Apply filters whenever filter criteria change
   useEffect(() => {
     applyFilters();
@@ -124,21 +135,22 @@ const TodayMarketScreen = ({ route }) => {
   const applyFilters = () => {
     let filtered = [...marketItems];
 
-    // Apply search filter
+    // First filter: only items updated today
+    filtered = filtered.filter(item => isToday(item.lastUpdated));
+
+    // Then apply other filters
     if (searchQuery) {
       filtered = filtered.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Apply category filter
     if (selectedCategory !== 'All') {
       filtered = filtered.filter(item =>
         item.category.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
-    // Apply price range filter
     filtered = filtered.filter(item =>
       item.price >= priceRange.min && item.price <= priceRange.max
     );
