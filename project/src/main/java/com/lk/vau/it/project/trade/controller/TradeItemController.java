@@ -92,4 +92,14 @@ public class TradeItemController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{id}/close-auction")
+    public ResponseEntity<Map<String, Object>> closeAuction(@PathVariable Long id) {
+        TradeItemDto updatedItem = itemService.updateBidStatus(id, false);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Auction closed successfully");
+        response.put("item", updatedItem);
+        return ResponseEntity.ok(response);
+    }
+
 }
