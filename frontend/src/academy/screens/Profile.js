@@ -21,7 +21,7 @@ import Certificates from './Certificates/Certificates';
 import ChangePassword from './ChangePassword/ChangePassword';
 import Settings from './Settings/Settings';
 import ContactUs from './ContactUs/ContactUs';
-import AddNewCourseScreen from './AddNewCourseScreen/AddNewCourseScreen';
+import AddNewCourseScreen from './AddNewCourseScreen';
 import EditCourses from './EditCourses/EditCourses';
 import AllCourses from './AllCourses/AllCourses';
 import Earnings from './Earnings/Earnings';
@@ -189,6 +189,10 @@ const Profile = () => {
         {renderListItem('Change Password', 'Update your account password', 'lock', () => navigation.navigate('ChangePassword'))}
         {renderListItem('Settings', 'Manage your preferences', 'cog', () => navigation.navigate('Settings'))}
         {renderListItem('Contact Us', 'Get help or send feedback', 'envelope', () => navigation.navigate('ContactUs'))}
+        {renderListItem('Add New Course', 'Create a new course', 'plus-circle', () => navigation.navigate('AddNewCourseScreen'))}
+        {renderListItem('Edit Courses', 'Modify existing courses', 'pencil-alt', () => navigation.navigate('EditCourses'))}
+        {renderListItem('All Courses', 'View all available courses', 'list-alt', () => navigation.navigate('AllCourses'))}
+        {renderListItem('Earnings', 'Check your earnings', 'money-bill-alt', () => navigation.navigate('Earnings'))}
         {renderListItem('Logout', 'Sign out from your account', 'sign-out-alt', handleLogout, true)}
       </View>
 
