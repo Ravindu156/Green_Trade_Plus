@@ -47,11 +47,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         
-        // For development - replace with your actual React Native dev server IP
+        // --- MODIFIED SECTION ---
+        // Add http://localhost:8081 (your frontend's origin)
         config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:19006",  // Expo web
-            "http://192.168.1.100:19006" // Your local network IP
+            "http://localhost:19006",    // Expo web
+            "http://192.168.1.100:19006", // Your local network IP (if used by React Native)
+            "http://localhost:8081",     // **ADD THIS LINE FOR YOUR FRONTEND**
+            "http://192.168.1.227:8081"  // **ADD THIS LINE IF your frontend is accessed via your IP**
         ));
+        // --- END MODIFIED SECTION ---
         
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
