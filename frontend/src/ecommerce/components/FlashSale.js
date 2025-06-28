@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ export default function FlashSale({ navigation }) {
   const [error, setError] = useState(null);
   const { API_URL } = Constants.expoConfig.extra;
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -39,31 +39,25 @@ export default function FlashSale({ navigation }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
     fetchItems();
   }, []);
 
-  const getItemImage = (item) => {
+  const getItemImage = useCallback((item) => {
     if (item.productPhotoUrls && item.productPhotoUrls.length > 0) {
       return { uri: item.productPhotoUrls[0] };
     }
     return {
       uri: `https://via.placeholder.com/100x100.png?text=${encodeURIComponent(item.itemName.substring(0, 10))}`,
     };
-  };
+  }, []);
 
-  const formatPrice = (price) => `Rs.${price.toFixed(2)}`;
+  const formatPrice = useCallback((price) => `Rs.${price.toFixed(2)}`, []);
 
-  // ✅ Only show latest 5 items
-  const latestItems = [...items]
-    .sort((a, b) => b.item_id - a.item_id) // If newer items have higher ID
-    .slice(0, 5);
-
-  const renderItem = ({ item }) => (
+  const renderItem = useCallback(({ item }) => (
     <TouchableOpacity
-      key={item.item_id}
       style={styles.card}
       onPress={() => navigation.navigate('ProductDetails', { productId: item.item_id })}
     >
@@ -80,7 +74,7 @@ export default function FlashSale({ navigation }) {
         <Text style={styles.price}>{formatPrice(item.price)}</Text>
       </View>
     </TouchableOpacity>
-  );
+  ), [navigation, getItemImage, formatPrice]);
 
   if (loading) {
     return (
@@ -120,15 +114,14 @@ export default function FlashSale({ navigation }) {
           <Ionicons name="refresh" size={20} color="#007bff" />
         </TouchableOpacity>
       </View>
-      <FlatList
+      {/* <FlatList
         data={latestItems}
         renderItem={renderItem}
-        keyExtractor={(item) => item.item_id.toString()}
+        keyExtractor={(item, index) => `flashsale-${item.item_id}-${index}`}
         numColumns={2}
-        key={2}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-      />
+      /> */}
     </View>
   );
 }

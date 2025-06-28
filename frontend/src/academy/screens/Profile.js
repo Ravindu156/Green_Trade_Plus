@@ -1,8 +1,47 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, ScrollView } from 'react-native';
-import { Title, List, Avatar, Divider, Button, Card, Text } from 'react-native-paper';
+import {
+  View,
+  Text, // Using standard Text component
+  StyleSheet,
+  Image, // For profile photo
+  ScrollView,
+  TouchableOpacity, // For buttons and list items
+  ActivityIndicator, // For loading indicator
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+// You might need to install react-native-vector-icons:
+// npm install react-native-vector-icons
+// or yarn add react-native-vector-icons
+// And then link for iOS: npx react-native-vector-icons@latest install
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'; // Using FontAwesome5 for icons
+import { createStackNavigator } from '@react-navigation/stack';
+import MyCourses from './MyCourses/MyCourses';
+import Certificates from './Certificates/Certificates';
+import ChangePassword from './ChangePassword/ChangePassword';
+import Settings from './Settings/Settings';
+import ContactUs from './ContactUs/ContactUs';
+import AddNewCourseScreen from './AddNewCourseScreen/AddNewCourseScreen';
+import EditCourses from './EditCourses/EditCourses';
+import AllCourses from './AllCourses/AllCourses';
+import Earnings from './Earnings/Earnings';
+
+const Stack = createStackNavigator();
+
+const ProfileNavigator = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="Profile" component={Profile} />
+    <Stack.Screen name="MyCourses" component={MyCourses} />
+    <Stack.Screen name="Certificates" component={Certificates} />
+    <Stack.Screen name="ChangePassword" component={ChangePassword} />
+    <Stack.Screen name="Settings" component={Settings} />
+    <Stack.Screen name="ContactUs" component={ContactUs} />
+    <Stack.Screen name="AddNewCourseScreen" component={AddNewCourseScreen} />
+    <Stack.Screen name="EditCourses" component={EditCourses} />
+    <Stack.Screen name="AllCourses" component={AllCourses} />
+    <Stack.Screen name="Earnings" component={Earnings} />
+  </Stack.Navigator>
+);
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -15,7 +54,7 @@ const Profile = () => {
         const userData = await AsyncStorage.getItem('user');
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        console.log("UserRole", parsedUser.profilePhotoPath);
+        console.log("UserRole", parsedUser?.profilePhotoPath); // Use optional chaining for safety
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -42,18 +81,42 @@ const Profile = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading profile...</Text>
+        <ActivityIndicator size="large" color="#1976d2" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
   }
 
   const isTutor = user?.role === 'tutor';
 
+  // Helper function to render list items
+  const renderListItem = (title, description, iconName, onPress, isLogout = false) => (
+    <TouchableOpacity
+      style={[styles.listItem, isLogout && styles.logoutItem]}
+      onPress={onPress}
+      activeOpacity={0.7} // Visual feedback on press
+    >
+      <View style={styles.listItemLeft}>
+        <FontAwesome5 name={iconName} size={24} color={isLogout ? '#d32f2f' : '#1976d2'} style={styles.listIcon} />
+      </View>
+      <View style={styles.listItemContent}>
+        <Text style={styles.listItemTitle}>{title}</Text>
+        <Text style={styles.listItemDescription}>{description}</Text>
+      </View>
+      {!isLogout && (
+        <View style={styles.listItemRight}>
+          <FontAwesome5 name="chevron-right" size={16} color="#666" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <ScrollView style={styles.container}>
-      <Card style={styles.profileCard}>
+      {/* Profile Card (replaces Paper's Card) */}
+      <View style={styles.profileCard}>
         <View style={styles.profileHeader}>
-                    {user?.profilePhotoPath ? (
+          {user?.profilePhotoPath ? (
             <>
               {console.log(`Profile photo URI: http://localhost:8080/api/auth/profile-photos/${user.profilePhotoPath}`)}
               <Image
@@ -62,116 +125,73 @@ const Profile = () => {
               />
             </>
           ) : (
-            <Avatar.Icon size={100} icon="account" style={styles.avatarIcon} />
+            // Replaces Paper's Avatar.Icon
+            <View style={styles.defaultAvatar}>
+              <FontAwesome5 name="user-alt" size={50} color="#fff" />
+            </View>
           )}
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcomeText}>Hello,</Text>
-            <Title style={styles.name}>{user?.userName || 'User'}</Title>
-            <Text style={styles.roleTag}>{isTutor ? 'Tutor' : user.role}</Text>
+            <Text style={styles.name}>{user?.userName || 'User'}</Text> {/* Replaces Paper's Title */}
+            <Text style={styles.roleTag}>{isTutor ? 'Tutor' : user?.role || 'Farmer'}</Text> {/* Use optional chaining */}
           </View>
         </View>
-      </Card>
+      </View>
 
-      <Divider style={styles.divider} />
+      {/* Divider (replaces Paper's Divider) */}
+      <View style={styles.sectionDivider} />
 
       {isTutor ? (
         <View style={styles.tutorSection}>
           <Text style={styles.sectionTitle}>Tutor Dashboard</Text>
           <View style={styles.buttonGrid}>
-            <Button
-              mode="contained"
-              icon="plus-circle"
+            {/* Custom Button (replaces Paper's Button mode="contained") */}
+            <TouchableOpacity
               style={styles.actionButton}
-              contentStyle={styles.buttonContent}
               onPress={() => navigation.navigate('AddNewCourseScreen')}
             >
-              Add New Course
-            </Button>
-            
-            <Button
-              mode="contained"
-              icon="pencil"
+              <FontAwesome5 name="plus-circle" size={20} color="#fff" style={styles.actionButtonIcon} />
+              <Text style={styles.actionButtonText}>Add New Course</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.actionButton}
-              contentStyle={styles.buttonContent}
               onPress={() => navigation.navigate('EditCourses')}
             >
-              Edit Courses
-            </Button>
+              <FontAwesome5 name="pencil-alt" size={20} color="#fff" style={styles.actionButtonIcon} />
+              <Text style={styles.actionButtonText}>Edit Courses</Text>
+            </TouchableOpacity>
 
-            <Button
-              mode="contained"
-              icon="view-list"
+            <TouchableOpacity
               style={styles.actionButton}
-              contentStyle={styles.buttonContent}
               onPress={() => navigation.navigate('AllCourses')}
             >
-              View All Courses
-            </Button>
+              <FontAwesome5 name="list-alt" size={20} color="#fff" style={styles.actionButtonIcon} />
+              <Text style={styles.actionButtonText}>View All Courses</Text>
+            </TouchableOpacity>
 
-            <Button
-              mode="contained"
-              icon="cash-multiple"
+            <TouchableOpacity
               style={styles.actionButton}
-              contentStyle={styles.buttonContent}
               onPress={() => navigation.navigate('Earnings')}
             >
-              Your Earnings
-            </Button>
+              <FontAwesome5 name="money-bill-alt" size={20} color="#fff" style={styles.actionButtonIcon} />
+              <Text style={styles.actionButtonText}>Your Earnings</Text>
+            </TouchableOpacity>
           </View>
         </View>
       ) : null}
 
-      <List.Section style={styles.listSection}>
+      {/* List Section (replaces Paper's List.Section) */}
+      <View style={styles.listSection}>
         <Text style={styles.sectionTitle}>My Account</Text>
-        <List.Item
-          title="My Courses"
-          description="View enrolled or created courses"
-          left={() => <List.Icon color="#1976d2" icon="book" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('MyCourses')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Certificates"
-          description="View your earned certificates"
-          left={() => <List.Icon color="#1976d2" icon="certificate" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('Certificates')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Change Password"
-          description="Update your account password"
-          left={() => <List.Icon color="#1976d2" icon="lock-reset" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('ChangePassword')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Settings"
-          description="Manage your preferences"
-          left={() => <List.Icon color="#1976d2" icon="cog" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('Settings')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Contact Us"
-          description="Get help or send feedback"
-          left={() => <List.Icon color="#1976d2" icon="message-text" />}
-          right={() => <List.Icon color="#1976d2" icon="chevron-right" />}
-          onPress={() => navigation.navigate('ContactUs')}
-          style={styles.listItem}
-        />
-        <List.Item
-          title="Logout"
-          description="Sign out from your account"
-          left={() => <List.Icon color="#d32f2f" icon="logout" />}
-          onPress={handleLogout}
-          style={[styles.listItem, styles.logoutItem]}
-        />
-      </List.Section>
-      
+        {renderListItem('My Courses', 'View enrolled or created courses', 'book', () => navigation.navigate('MyCourses'))}
+        {renderListItem('Certificates', 'View your earned certificates', 'award', () => navigation.navigate('Certificates'))}
+        {renderListItem('Change Password', 'Update your account password', 'lock', () => navigation.navigate('ChangePassword'))}
+        {renderListItem('Settings', 'Manage your preferences', 'cog', () => navigation.navigate('Settings'))}
+        {renderListItem('Contact Us', 'Get help or send feedback', 'envelope', () => navigation.navigate('ContactUs'))}
+        {renderListItem('Logout', 'Sign out from your account', 'sign-out-alt', handleLogout, true)}
+      </View>
+
       <View style={styles.footer}>
         <Text style={styles.versionText}>Green Trade Plus v1.0.0</Text>
       </View>
@@ -189,11 +209,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
   profileCard: {
     margin: 16,
     elevation: 4,
     borderRadius: 12,
     backgroundColor: '#ffffff',
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   profileHeader: {
     flexDirection: 'row',
@@ -208,9 +237,16 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#1976d2',
   },
-  avatarIcon: {
+  defaultAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#1976d2',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 20,
+    borderWidth: 3,
+    borderColor: '#1976d2',
   },
   welcomeContainer: {
     flex: 1,
@@ -234,10 +270,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignSelf: 'flex-start',
   },
-  divider: {
+  sectionDivider: { // Replaces Paper's Divider
     marginVertical: 8,
     height: 1,
     backgroundColor: '#e0e0e0',
+    marginHorizontal: 16, // Match card margins
   },
   tutorSection: {
     padding: 16,
@@ -247,37 +284,75 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 12,
-    paddingLeft: 16,
+    paddingLeft: 0, // Adjusted as it's not a List.Section title anymore
   },
   buttonGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  actionButton: {
+  actionButton: { // Replaces Paper's Button
     width: '48%',
     marginBottom: 15,
     borderRadius: 8,
     backgroundColor: '#1976d2',
+    flexDirection: 'row', // For icon and text
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50, // Matches original buttonContent height
+    paddingHorizontal: 10, // Added padding
   },
-  buttonContent: {
-    height: 50,
+  actionButtonIcon: {
+    marginRight: 8,
   },
-  listSection: {
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  listSection: { // Replaces Paper's List.Section
     backgroundColor: '#ffffff',
     marginHorizontal: 16,
     marginVertical: 10,
     borderRadius: 12,
     overflow: 'hidden',
     elevation: 2,
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
-  listItem: {
-    paddingVertical: 8,
+  listItem: { // Replaces Paper's List.Item
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  listItemLeft: {
+    marginRight: 15,
+  },
+  listItemContent: {
+    flex: 1,
+  },
+  listItemTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  listItemDescription: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+  listItemRight: {
+    marginLeft: 10,
+  },
   logoutItem: {
     borderBottomWidth: 0,
+    backgroundColor: '#ffebee', // Light red background for logout
   },
   footer: {
     padding: 16,
@@ -289,4 +364,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Profile;
+export default ProfileNavigator;

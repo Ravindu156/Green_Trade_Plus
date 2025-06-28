@@ -15,7 +15,7 @@ export default function Category() {
       <Text style={styles.title}>Categories</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
         {['Plastic Boxes', 'Steel Boxes', 'Wooden Boxes'].map((category, index) => (
-          <TouchableOpacity key={index} style={styles.box} onPress={() => handleCategoryPress(category)}>
+          <TouchableOpacity key={`category-${index}-${category}`} style={styles.box} onPress={() => handleCategoryPress(category)}>
             <FontAwesome5 name="box" size={24} color="#333" />
             <Text style={styles.text}>{category}</Text>
           </TouchableOpacity>

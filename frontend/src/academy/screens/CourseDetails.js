@@ -22,7 +22,7 @@ import {
 } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Video } from 'expo-av'; // You'll need to install this: npm install react-native-video
+import { VideoView } from 'expo-video';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -210,13 +210,13 @@ const CourseDetails = () => {
       <Surface style={styles.videoContainer} elevation={4}>
         <Text style={styles.sectionTitle}>Course Video</Text>
         <View style={styles.videoWrapper}>
-          <Video
+          <VideoView
             source={{ uri: course.courseVideo }}
             style={styles.video}
-            useNativeControls={true}          // <-- changed here
-            resizeMode="contain"
+            showsPlaybackControls={true}
+            contentFit="contain"
             onError={(error) => {
-              console.error('Video error:', error.nativeEvent);
+              console.error('Video error:', error);
               Alert.alert('Video Error', 'Failed to load video. Please try again.');
             }}
           />
